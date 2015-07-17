@@ -61,3 +61,7 @@ set tags+=~/.tags
 "set list
 "set listchars=tab:>-
 
+" PCのクリップボードと同期
+set clipboard=unnamedc
+
+
