@@ -45,7 +45,7 @@ set incsearch
 set ignorecase
 
 " タブの幅
-set noexpandtab
+set expandtab
 set tabstop=4
 set shiftwidth=4
 set softtabstop=0
@@ -66,19 +66,54 @@ set clipboard=unnamedc
 
 
 
-"---------------------------
+"------------------------------------------------------
 " Start Neobundle Settings.
-"---------------------------
-" bundleで管理するディレクトリを指定
+"------------------------------------------------------
+"
+" [初回インストールコマンド]
+"
+" mkdir -p ~.vim/bundle
+" git clone https://github.com/Shougo/neobundle.vim ~/.vim/bundle/neobundle.vim
+"
 
 " bundleで管理するディレクトリを指定
 set runtimepath+=~/.vim/bundle/neobundle.vim/
-
-" Required:
 call neobundle#begin(expand('~/.vim/bundle/'))
   
 " neobundle自体をneobundleで管理
 NeoBundleFetch 'Shougo/neobundle.vim'
+
+
+"----------------------------------------------------
+" syntastic.vim PHPのシンタックスチェック
+"----------------------------------------------------
+NeoBundle 'scrooloose/syntastic'
+
+let g:syntastic_check_on_open        = 1
+let g:syntastic_enable_signs         = 1
+let g:syntastic_echo_current_error   = 1
+let g:syntastic_auto_loc_list        = 2
+let g:syntastic_enable_highlighting  = 1
+let g:syntastic_php_php_args         = '-l'
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+
+"----------------------------------------------------
+" コメントアウトプラグイン
+"----------------------------------------------------
+
+NeoBundle "tyru/caw.vim.git"
+nmap <C-K> <Plug>(caw:i:toggle)
+vmap <C-K> <Plug>(caw:i:toggle)
+
+
+"----------------------------------------------------
+" Surround.Vim
+"----------------------------------------------------
+
+NeoBundle 'tpope/vim-surround'
 
  
 " 今後このあたりに追加のプラグインをどんどん書いて行きます！！"
@@ -94,8 +129,8 @@ filetype plugin indent on
 " 毎回聞かれると邪魔な場合もあるので、この設定は任意です。
 NeoBundleCheck
  
- "-------------------------
- " End Neobundle Settings.
- "-------------------------
+"-------------------------
+" End Neobundle Settings.
+"-------------------------
 
 
