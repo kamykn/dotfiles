@@ -56,6 +56,11 @@ set virtualedit+=onemore
 " バックスペースの挙動を7.2の時のように戻す
 set backspace=indent,eol,start
 
+" exモードに入らない
+nnoremap Q <Nop>
+
+
+
 "前回閉じたときのカーソルの位置を保存
 augroup vimrcEx
   au BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
@@ -185,15 +190,6 @@ let g:neosnippet#enable_snipmate_compatibility = 1
 let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/snippets'
 
 
-"----------------------------------------------------
-" Vim PHPDoc
-"----------------------------------------------------
-" PHPDoc形式のコメントを生成
-
-NeoBundle 'PDV--phpDocumentor-for-Vim'
-autocmd BufReadPost *.php source ~/php-doc.vim
-nnoremap <C-P> :call PhpDocSingle()<CR>
-
 
 "----------------------------------------------------
 " vim-indent-guides
@@ -209,6 +205,25 @@ let g:indent_guides_auto_colors = 0
 autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  ctermbg=234
 autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=233
 
+
+"----------------------------------------------------
+" ctrlp
+"----------------------------------------------------
+" ファイル名検索 git使ってるとgitのルートディレクトリを勝手に検知
+
+NeoBundle "ctrlpvim/ctrlp.vim"
+
+
+"----------------------------------------------------
+" Vim PHPDoc
+"----------------------------------------------------
+" PHPDoc形式のコメントを生成
+
+NeoBundle 'PDV--phpDocumentor-for-Vim'
+autocmd BufReadPost *.php source ~/php-doc.vim
+
+" <C-M>はもともと改行だが、normalモードだとjと変わらない
+nnoremap <C-M> :call PhpDocSingle()<CR>
 
 
 
