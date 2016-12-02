@@ -1,0 +1,31 @@
+snippet class
+        <?php
+
+        /**
+         * `expand("%:t:r")` 
+         * 
+         * @package 
+         * @version 
+         */
+        class `expand("%:t:r")` {
+
+            /**
+             * __construct 
+             * 
+             * @access public
+             * @return void
+             */
+            public function __construct () {
+
+            }
+
+            public function ${1:func}() {
+
+            }
+        }
+
+snippet log
+    error_log("\n" . "===================" . "\n", 3, '/tmp/kmszk/debug.log');
+
+snippet $t
+    $this->
