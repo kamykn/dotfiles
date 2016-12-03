@@ -96,13 +96,6 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "----------------------------------------------------
 NeoBundle 'itchyny/lightline.vim'
 
-" dotfilesのphp.snipを適応するには
-" ln -s ~/dotfiles/.vim/bundle/vim-snippets/snippets/php.snip .vim/bundle/vim-snippets/snippets/php.snip 
-"
-" 編集中に
-" :NeoSnippetEdit
-" で現在開いているファイルタイプのスニペットを編集できる
-
 set laststatus=2
 if !has('gui_running')
 	  set t_Co=256
@@ -135,6 +128,13 @@ NeoBundle 'tpope/vim-surround'
 "----------------------------------------------------
 " Vim Neosnippet
 "----------------------------------------------------
+" dotfilesのphp.snipを適応するには
+" ln -s ~/dotfiles/.vim/bundle/vim-snippets/snippets/php.snip .vim/bundle/vim-snippets/snippets/php.snip 
+"
+" 編集中に
+" :NeoSnippetEdit
+" で現在開いているファイルタイプのスニペットを編集できる
+
 " 依存モジュール
 NeoBundle 'Shougo/neocomplcache'
 
