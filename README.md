@@ -55,3 +55,8 @@ $ git config --global difftool.prompt false
 $ git config --global merge.tool vimdiff
 $ git config --global mergetool.prompt false
 ```
+
+# Gitにコミットする用意
+```
+git remote add origin git@github.com:kmszk/dotfiles.git
+```
