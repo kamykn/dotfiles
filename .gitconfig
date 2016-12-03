@@ -1,0 +1,11 @@
+[user]
+	email = mail@kamisuzuki.com
+	name = kmszk
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
+[merge]
+	tool = vimdiff
+[mergetool]
+	prompt = false
