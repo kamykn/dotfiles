@@ -1,6 +1,11 @@
 " -----------------------------------------------------
 "                     kmszk .vimrc                    
 " -----------------------------------------------------
+
+"------------------------------------------------------
+" Common Settings.
+"------------------------------------------------------
+
 " vim-indent-guides の利用で必要
 colorscheme default
 
@@ -69,7 +74,7 @@ augroup END
 
 
 "------------------------------------------------------
-" Start Neobundle Settings.
+" Neobundle settings start .
 "------------------------------------------------------
 "
 " [初回インストールコマンド]
@@ -109,45 +114,6 @@ let g:lightline = {
     \ 'separator': { 'left': " >>", 'right': "<< " },
     \ 'subseparator': { 'left': " >>", 'right': "<< " },
 	\ }
-
-" "----------------------------------------------------
-" " syntastic.vim PHPのシンタックスチェック
-" "----------------------------------------------------
-" NeoBundle 'scrooloose/syntastic'
-" 
-" let g:syntastic_check_on_open		 = 1
-" let g:syntastic_enable_signs		 = 1
-" let g:syntastic_echo_current_error	 = 1
-" let g:syntastic_auto_loc_list		 = 2
-" let g:syntastic_enable_highlighting	 = 1
-" let g:syntastic_php_php_args		 = '-l'
-" " set statusline+=%#warningmsg#
-" " set statusline+=%{SyntasticStatuslineFlag()}
-" " set statusline+=%*
-
-
-" "----------------------------------------------------
-" " Ctags コマンド自動化
-" "----------------------------------------------------
-" " :TagsGenerate
-" " 大きめのプロジェクトでは生成に少し時間がかかる
-" NeoBundle 'szw/vim-tags'
-" 
-" " ctags -f ~/.tags -R ~/project/ --exclude=.git --exclude=.svn
-" set tags+=~/.tags
-" 
-" " 保存時に裏で自動でctagsを作成する
-" let g:vim_tags_auto_generate = 1
-" 
-" " tag保存メインファイル名
-" let g:vim_tags_main_file = '.tags'
-" 
-" " tagファイルのパス
-" let g:vim_tags_extension = '~'
-" 
-" " 実行コマンド
-" " ~/projectが設定されている前提
-" let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project --exclude=.git --exclude=.svn 2>/dev/null"
 
 
 "----------------------------------------------------
@@ -215,20 +181,87 @@ autocmd VimEnter,Colorscheme * :hi IndentGuidesEven ctermbg=none
 
 NeoBundle "ctrlpvim/ctrlp.vim"
 
+"------------------------------------------------------
+" Language settings start.
+"------------------------------------------------------
+
+" [Common settings] =================================
+" "----------------------------------------------------
+" " syntastic.vim PHPのシンタックスチェック
+" "----------------------------------------------------
+" NeoBundle 'scrooloose/syntastic'
+" 
+" let g:syntastic_check_on_open		 = 1
+" let g:syntastic_enable_signs		 = 1
+" let g:syntastic_echo_current_error	 = 1
+" let g:syntastic_auto_loc_list		 = 2
+" let g:syntastic_enable_highlighting	 = 1
+" let g:syntastic_php_php_args		 = '-l'
+" " set statusline+=%#warningmsg#
+" " set statusline+=%{SyntasticStatuslineFlag()}
+" " set statusline+=%*
 
 
-"----------------------------------------------------
-call neobundle#end()
-"----------------------------------------------------
+" "----------------------------------------------------
+" " Ctags コマンド自動化
+" "----------------------------------------------------
+" " :TagsGenerate
+" " 大きめのプロジェクトでは生成に少し時間がかかる
+" NeoBundle 'szw/vim-tags'
+" 
+" " ctags -f ~/.tags -R ~/project/ --exclude=.git --exclude=.svn
+" set tags+=~/.tags
+" 
+" " 保存時に裏で自動でctagsを作成する
+" let g:vim_tags_auto_generate = 1
+" 
+" " tag保存メインファイル名
+" let g:vim_tags_main_file = '.tags'
+" 
+" " tagファイルのパス
+" let g:vim_tags_extension = '~'
+" 
+" " 実行コマンド
+" " ~/projectが設定されている前提
+" let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project --exclude=.git --exclude=.svn 2>/dev/null"
 
+" [Golang] ==========================================
+
+" "----------------------------------------------------
+" " setting for go
+" "----------------------------------------------------
+" " 使い方
+" " http://qiita.com/koara-local/items/6c886eccfb459159c431
+" 
+" NeoBundle 'fatih/vim-go'
+ 
+" [PHP] ===============================================
+
+" "----------------------------------------------------
+" " Vim PHPDoc
+" "----------------------------------------------------
+" " PHPDoc形式のコメントを生成
+" 
+" NeoBundle 'PDV--phpDocumentor-for-Vim'
+" autocmd BufReadPost *.php source ~/php-doc.vim
+" 
+" " <C-M>はもともと改行だが、normalモードだとjと変わらない
+" nnoremap <C-M> :call PhpDocSingle()<CR>
+" 
+" [Language Settings end] ===========================
+
+
+"------------------------------------------------------
+" Neobundle settings end.
+"------------------------------------------------------
 " 未インストールのプラグインがある場合、インストールするかどうかを尋ねてくれるようにする設定
-" 毎回聞かれると邪魔な場合もあるので、この設定は任意です。
-
-
+call neobundle#end()
 NeoBundleCheck
 
 
-
+"----------------------------------------------------
+" Vim neosnippet settings
+"----------------------------------------------------
 
 " neosnipets用のセッティング
 " Plugin key-mappings.
@@ -247,6 +280,9 @@ if has('conceal')
   set conceallevel=2 concealcursor=niv
 endif
 
+"------------------------------------------------------
+" Common settings.
+"------------------------------------------------------
 
 " NeoBundleの前に書くと効かないらしい
 syntax on	
