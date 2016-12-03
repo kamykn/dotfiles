@@ -7,7 +7,7 @@ $ git clone https://github.com/Shougo/neobundle.vim ~/.vim/bundle/neobundle.vim
 
 ## その他のプラグインをインストール
 ```
-$ ln -s ~/.vimrc dotfiles/.vimrc
+$ ln -s ~/.vimrc ~/dotfiles/.vimrc
 ```
 その後Vimを実行して、各種プラグインがインストールされるのを待つ。
 
@@ -20,15 +20,15 @@ preferences->Profiles->Terminal->Report Terminal Typeをxterm-256colorに
 ### tmux
 .tmux.confをdotfileのものと置き換える
 ```
-$ ln -s ~/.tmux.conf dotfiles/.tmux.conf
+$ ln -s ~/.tmux.conf ~/dotfiles/.tmux.conf
 ```
 
 
 # tmuxをsshログインデフォルト実行
 .bashrcを置き換え
 ```
-$ mv .bashrc .bashrc.orig
-$ ln -s ~/.bashrc dotfiles/.bashrc
+$ mv ~/.bashrc ~/.bashrc.orig
+$ ln -s ~/.bashrc ~/dotfiles/.bashrc
 ```
 
 ただし、デフォルトでなにかといじられている場合もあるので、中身を見て、下記を移すだけでも良い
@@ -45,7 +45,7 @@ fi
 ## Gitのdiffをvimdiffで見る
 .gitconfigをdotfileのものと置き換えると利用可能
 ```
-$ ln -s ~/.gitconfig dotfiles/.gitconfig
+$ ln -s ~/.gitconfig ~/dotfiles/.gitconfig
 ```
 
 または下記のコマンドをコピペ
