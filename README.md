@@ -60,3 +60,8 @@ $ git config --global mergetool.prompt false
 ```
 git remote add origin git@github.com:kmszk/dotfiles.git
 ```
+## TODO
+git alias 設定
+https://git-scm.com/book/tr/v2/Git-Basics-Git-Aliases
+
+
