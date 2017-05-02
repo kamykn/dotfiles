@@ -75,6 +75,9 @@ set backspace=indent,eol,start
 " exモードに入らない
 nnoremap Q <Nop>
 
+" 勝手に第一候補を選択して入れない
+set completeopt+=noinsert
+
 
 " misc alias 
 " Vimrcへのショートカット
@@ -225,6 +228,45 @@ NeoBundle 'AndrewRadev/splitjoin.vim'
 
 
 "----------------------------------------------------
+" Vim Neocomplete
+"----------------------------------------------------
+" 下記コマンドでluaが入っているかをチェックし、入ってないならluaが使えるようにする必要あり。
+" % vim --version
+" # - lua ならだめ
+"
+" Macの場合
+" brew install vim --with-lua
+"
+"
+NeoBundle 'Shougo/neocomplete.vim'
+
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+" Set minimum syntax keyword length.
+let g:neocomplete#sources#syntax#min_keyword_length = 3
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+
+let g:neocomplete#enable_auto_select = 0
+
+" タグファイルがこれ以上の大きさだと読み込まれなくなります
+let g:neocomplete#sources#tags#cache_limit_size = 10000000
+
+" Define keyword.
+if !exists('g:neocomplete#keyword_patterns')
+	let g:neocomplete#keyword_patterns = {}
+endif
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+	let g:neocomplete#sources#omni#input_patterns = {}
+endif
+
+"----------------------------------------------------
 " Vim Neosnippet
 "----------------------------------------------------
 " dotfilesのphp.snipを適応するには
@@ -233,9 +275,6 @@ NeoBundle 'AndrewRadev/splitjoin.vim'
 " 編集中に
 " :NeoSnippetEdit
 " で現在開いているファイルタイプのスニペットを編集できる
-
-" 依存モジュール
-NeoBundle 'Shougo/neocomplcache'
 
 NeoBundle 'Shougo/neosnippet'
 NeoBundle 'Shougo/neosnippet-snippets'
@@ -480,6 +519,7 @@ imap <C-k>     <Plug>(neosnippet_expand_or_jump)
 " \ pumvisible() ? "\<C-n>" :
 " \ neosnippet#expandable_or_jumpable() ?
 " \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
 
