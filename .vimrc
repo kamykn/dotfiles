@@ -109,6 +109,91 @@ vnoremap <silent> <C-p> "0p<CR>
 
 
 "------------------------------------------------------
+" FZF 
+"------------------------------------------------------
+"
+" [初回インストールコマンド]
+" git clone https://github.com/junegunn/fzf.git ~/.fzf
+"
+" FYI: http://koturn.hatenablog.com/entry/2015/11/26/000000
+" FYI: https://github.com/junegunn/fzf/wiki/Examples-(vim)
+"
+
+" :FZFコマンドを使えるように
+set rtp+=~/.fzf
+
+" replace of Ctrl-p
+nnoremap <C-p> :FZF<CR>
+
+nnoremap <C-q> :FZFQuickfix<CR>
+
+:command! Fmru FZFMru
+:command! Fb FufBufferTag
+
+" [MRU] ========================================
+" 
+command! FZFMru call fzf#run({
+			\  'source':  v:oldfiles,
+			\  'sink':    'tabe',
+			\  'options': '-m -x +s',
+			\  'down':    '40%'})
+
+" [Buffer] =====================================
+"
+command! FZFBuffer :call fzf#run({
+\   'source':  reverse(<sid>buflist()),
+\   'sink':    function('<sid>bufopen'),
+\   'options': '+m',
+\   'down':    len(<sid>buflist()) + 2
+\ })<CR>
+
+
+function! s:buflist()
+  redir => ls
+  silent ls
+  redir END
+  return split(ls, '\n')
+endfunction
+
+function! s:bufopen(e)
+  execute 'buffer' matchstr(a:e, '^[ 0-9]*')
+endfunction
+
+" [QuickFix] ===================================
+"
+command! FZFQuickfix call fzf#run({
+			\  'source':  Get_qf_text_lists(),
+			\  'sink':    function('s:qf_sink'),
+			\  'options': '-m -x +s',
+			\  'down':    '40%'})
+
+" QuickFix形式にqfListから文字列を生成する
+function! Get_qf_text_lists()
+	let qflist = getqflist()
+	let textList = []
+	for i in qflist
+		if i.valid
+			let textList = add(textList, printf('%s|%d| %s',
+				\		bufname(i.bufnr),
+				\		i.lnum,
+				\		matchstr(i.text, '\s*\zs.*\S')
+				\	))
+		endif
+	endfor
+	return textList
+endfunction
+
+" QuickFix形式のstringからtabeに渡す
+function! s:qf_sink(line)
+	let parts = split(a:line, '\s')
+	" echo parts
+	execute 'tabe ' . parts[0]
+endfunction
+
+
+
+
+"------------------------------------------------------
 " Plugin 
 "------------------------------------------------------
 
@@ -272,73 +357,6 @@ NeoBundle 'tpope/vim-surround'
 NeoBundle 'AndrewRadev/splitjoin.vim'
 
 
-"----------------------------------------------------
-" Vim vimproc
-"----------------------------------------------------
-
-NeoBundle 'Shougo/vimproc.vim', {
-			\ 'build'   : {
-			\ 	'windows' : 'tools\\update-dll-mingw',
-			\ 	'cygwin'  : 'make -f make_cygwin.mak',
-			\ 	'mac'     : 'make',
-			\ 	'linux'   : 'make',
-			\ 	'unix'    : 'gmake',
-			\ 	},
-			\ }
-
-
-" "----------------------------------------------------
-" " Vim Neocomplete
-" "----------------------------------------------------
-" " 下記コマンドでluaが入っているかをチェックし、入ってないならluaが使えるようにする必要あり。
-" " % vim --version
-" " # - lua ならだめ
-" "
-" " Macの場合
-" " brew install vim --with-lua
-" "
-" "
-" NeoBundle 'Shougo/neocomplete.vim'
-"
-" " expand 1st suggestion or current select.
-" inoremap <expr><TAB>  pumvisible() ? "\<CR>" : "\<TAB>"
-"
-" " Disable AutoComplPop.
-" let g:acp_enableAtStartup = 0
-" " Use neocomplete.
-" let g:neocomplete#enable_at_startup = 1
-" " Use smartcase.
-" let g:neocomplete#enable_smart_case = 1
-" " 補完をキャッシュ保存する最低文字長
-" " キャッシュを生成すると逆に遅くなっているので生成しないように…
-" let g:neocomplete#sources#syntax#min_keyword_length = 100
-" " 補完をし始める長さ
-" let g:neocomplete#auto_completion_start_length = 7
-"
-" let g:neocomplete#enable_auto_select = 0
-"
-" " タグファイルがこれ以上の大きさだと読み込まれなくなります
-" let g:neocomplete#sources#tags#cache_limit_size = 10000000
-"
-" let g:neocomplete#max_list = 20
-"
-" " vimproc
-" let g:neocomplete#use_vimproc = 1
-"
-" " Define keyword.
-" if !exists('g:neocomplete#keyword_patterns')
-" 	let g:neocomplete#keyword_patterns = {}
-" endif
-" let g:neocomplete#keyword_patterns['default'] = '\h\w*'
-"
-" " Enable heavy omni completion.
-" if !exists('g:neocomplete#sources#omni#input_patterns')
-" 	let g:neocomplete#sources#omni#input_patterns = {}
-" endif
-"
-" " call neocomplete#custom#source('omni', 'disabled_filetypes', {'md': 1})
-" :command! Neo NeoCompleteToggle
-
 
 "----------------------------------------------------
 " vim-scripts/AutoComplPop
@@ -348,7 +366,6 @@ NeoBundle 'Shougo/vimproc.vim', {
 "
 " <C-e>でキャンセルして続きをタイピング
 " ざっくり打っても候補がでる
-" 例: getHelper
 "
 NeoBundle 'vim-scripts/AutoComplPop'
 
@@ -365,6 +382,8 @@ set completeopt-=preview
 " 編集中に
 " :NeoSnippetEdit
 " で現在開いているファイルタイプのスニペットを編集できる
+
+" デフォルト通りなので<C-k>で利用可能
 
 NeoBundle 'Shougo/neosnippet'
 NeoBundle 'Shougo/neosnippet-snippets'
@@ -443,124 +462,18 @@ let g:php_localvarcheck_enable = 1
 let g:php_localvarcheck_global = 0
 
 
-"------------------------------------------------------
-" FZF 
-"------------------------------------------------------
-"
-" [初回インストールコマンド]
-" git clone https://github.com/junegunn/fzf.git ~/.fzf
-"
-
-" :FZFコマンドを使えるように
-set rtp+=~/.fzf
-
-" replace of Ctrl-p
-nnoremap <C-p> :FZF<CR>
-nnoremap <C-q> :FZFQuickfix<CR>
-
-:command! Fmru FZFMru
-:command! Fb FufBufferTag
-
-" [MRU] ========================================
-" 
-command! FZFMru call fzf#run({
-			\  'source':  v:oldfiles,
-			\  'sink':    'tabe',
-			\  'options': '-m -x +s',
-			\  'down':    '40%'})
-
-" [Buffer] =====================================
-"
-command! FZFBuffer :call fzf#run({
-\   'source':  reverse(<sid>buflist()),
-\   'sink':    function('<sid>bufopen'),
-\   'options': '+m',
-\   'down':    len(<sid>buflist()) + 2
-\ })<CR>
-
-
-function! s:buflist()
-  redir => ls
-  silent ls
-  redir END
-  return split(ls, '\n')
-endfunction
-
-function! s:bufopen(e)
-  execute 'buffer' matchstr(a:e, '^[ 0-9]*')
-endfunction
-
-" [QuickFix] ===================================
-"
-command! FZFQuickfix call fzf#run({
-			\  'source':  Get_qf_text_lists(),
-			\  'sink':    function('s:qf_sink'),
-			\  'options': '-m -x +s',
-			\  'down':    '40%'})
-
-" QuickFix形式にqfListから文字列を生成する
-function! Get_qf_text_lists()
-	let qflist = getqflist()
-	let textList = []
-	for i in qflist
-		if i.valid
-			let textList = add(textList, printf('%s|%d| %s',
-				\		bufname(i.bufnr),
-				\		i.lnum,
-				\		matchstr(i.text, '\s*\zs.*\S')
-				\	))
-		endif
-	endfor
-	return textList
-endfunction
-
-" QuickFix形式のstringからtabeに渡す
-function! s:qf_sink(line)
-	let parts = split(a:line, '\s')
-	" echo parts
-	execute 'tabe ' . parts[0]
-endfunction
-
-
-
-" NeoBundle 'vim-scripts/FuzzyFinder'
-"
-" " FuzzyFinderの依存プラグイン
-" NeoBundle 'vim-scripts/L9'
-"
-" :command! Frm FufMruCmd
-" :command! Fb FufBufferTag
-" :command! Fqf FufQuickfix
-
-
-" "----------------------------------------------------
-" " Unite
-" "----------------------------------------------------
-"
-" NeoBundle 'Shougo/unite.vim'
-"
-" " 最近開いたファイル表示用の必須の拡張
-" NeoBundle 'Shougo/neomru.vim'
-"
-" " alias
-" :command! Uf Unite file
-" :command! Ufm Unite file_mru
-" :command! Ub Unite buffer
-"
-" NeoBundle 'sgur/unite-qf'
-" :command! Uqf Unite qf
-
 "----------------------------------------------------
-" 関数のアウトライン表示
+" Vim PHPDoc
 "----------------------------------------------------
+" PHPDoc形式のコメントを生成
 
-" " h1mesuke/unite-outlineが使えなくなっていたので、Shougoさんのunite-outlineに差し替え
-" " NeoBundle 'h1mesuke/unite-outline' "# こっちは使わない
-" " こっちだとmdも出せます。
-" NeoBundle 'Shougo/unite-outline'
-"
-" " let g:unite_split_rule = 'right'
-" nnoremap <C-l> <ESC>:Unite -vertical -winwidth=40 outline<Return><C-W>x<C-w>l
+NeoBundle 'PDV--phpDocumentor-for-Vim'
+" autocmd BufReadPost *.php source ~/php-doc.vim
+
+nnoremap <C-@> :call PhpDocSingle()<CR>
+
+
+" [Language Settings end] ===========================
 
 
 "----------------------------------------------------
@@ -575,19 +488,6 @@ nmap <C-l> :TagbarToggle<CR>
 " tagbar の設定
 let g:tagbar_width = 50        " 初期設定はwidth=40
 let g:tagbar_autoshowtag = 1   ":TagbarShowTag を叩かなくても有効にする
-
-"----------------------------------------------------
-" Vim PHPDoc
-"----------------------------------------------------
-" PHPDoc形式のコメントを生成
-
-NeoBundle 'PDV--phpDocumentor-for-Vim'
-" autocmd BufReadPost *.php source ~/php-doc.vim
-
-nnoremap <C-@> :call PhpDocSingle()<CR>
-
-
-" [Language Settings end] ===========================
 
 
 "----------------------------------------------------
@@ -699,4 +599,9 @@ set completeopt+=noselect,noinsert
 " [memo]
 " 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
 " <C-m>にキーバインドすると動かなくなる
+"
+" 2017/05/21
+" noecomplete+vimprocが大きいプロジェクトだとvimが段々と重たくなる為、AutoComplPopでvim本来の機能利用方向にシフト
+" Uniteも大層な使い方してないので高速で寄り若干リッチなFZFに関連機能を寄せた(vim-script/FuzzyFinderだと好きじゃない感じなのでvim-scriptで実装した)
+" 関数のアウトラインもunite-outlineではなくtagbarへ
 
