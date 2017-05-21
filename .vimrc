@@ -215,11 +215,11 @@ call neobundle#begin(expand('~/.vim/bundle/'))
 NeoBundleFetch 'Shougo/neobundle.vim'
 
 "----------------------------------------------------
-" Townk/vim-autoclose
+" cohama/lexima.vim
 "----------------------------------------------------
 " カッコとか閉じてくれる
 
-NeoBundle 'Townk/vim-autoclose'
+NeoBundle 'cohama/lexima.vim'
 
 
 "----------------------------------------------------
@@ -604,4 +604,6 @@ set completeopt+=noselect,noinsert
 " noecomplete+vimprocが大きいプロジェクトだとvimが段々と重たくなる為、AutoComplPopでvim本来の機能利用方向にシフト
 " Uniteも大層な使い方してないので高速で寄り若干リッチなFZFに関連機能を寄せた(vim-script/FuzzyFinderだと好きじゃない感じなのでvim-scriptで実装した)
 " 関数のアウトラインもunite-outlineではなくtagbarへ
+" 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
+" 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。
 
