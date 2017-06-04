@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="CustomCfg">
+	<description>
+		PSR2 style guide + tab indent instead of space.
+	</description>
+
+	<arg name="tab-width" value="4"/>
+
+	<rule ref="PSR1">
+		<!-- 
+		- 出力生成
+		- require や includeの使用
+		- 外部ファイルへの接続
+		- iniファイルの変更
+		- エラーや例外の吐出
+		- グローバル変数や静的変数の変更
+		- ファイルの読み込み、ファイルへの書き込み
+		-->
+		<exclude name="PSR1.Files.SideEffects"/>
+	</rule>
+
+	<rule ref="PSR2">
+		<!-- タブインデント許可 -->
+		<exclude name="Generic.WhiteSpace.DisallowTabIndent" />
+
+		<!-- namespaceを必ず利用(autoload想定) -->
+		<exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+
+		<!-- class名キャメルケース(autoload想定) -->
+		<exclude name="Squiz.Classes.ValidClassName.NotCamelCaps"/>
+	</rule>
+
+	<!-- タブインデント許可 -->
+	<rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
+	<rule ref="Generic.WhiteSpace.ScopeIndent">
+		<properties>
+			<property name="indent" value="4"/>
+			<property name="tabIndent" value="true"/>
+		</properties>
+	</rule>
+
+	<!-- Lines length -->
+	<rule ref="Generic.Files.LineLength">
+		<properties>
+			<property name="lineLimit" value="200"/>
+			<property name="absoluteLineLimit" value="250"/>
+		</properties>
+	</rule>
+</ruleset>
