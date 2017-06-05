@@ -442,59 +442,74 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
 " [PHP] ===============================================
 "
 "----------------------------------------------------
+"  ale シンタックスチェック
+"----------------------------------------------------
+
+NeoBundle 'w0rp/ale.git'
+
+" ErrorをQuickFixに流す
+let g:ale_set_loclist = 0
+let g:ale_set_quickfix = 1
+
+" ruleset
+let g:ale_php_phpcs_standard = $HOME.'/.phpconf/phpcs/ruleset.xml'
+let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
+
+" [phpmdメモ]
+" codesize：循環的複雑度などコードサイズ関連部分を検出するルール
+" controversial：キャメルケースなど議論の余地のある部分を検出するルール
+" design：ソフトの設計関連の問題を検出するルール
+" naming：長すぎたり、短すぎたりする名前を検出するルール
+" unusedcode：使われていないコードを検出するルール
+
+
+"----------------------------------------------------
 " syntastic.vim PHPのシンタックスチェック
 "----------------------------------------------------
 "
 " ErrorsでQuickFixにエラーが一覧表示
 "
 
-NeoBundle 'scrooloose/syntastic'
-
-command! Err Errors
-
-" phpmd/phpcsだけのエラーリストを表示
-command! Phpmd  SyntasticCheck phpmd
-command! Phpmdl SyntasticCheck phpmd | Errors
-
-command! Phpcs  SyntasticCheck phpcs
-command! Phpcsl SyntasticCheck phpcs | Errors
-
-let g:syntastic_mode_map = {
-  \ 'mode': 'active',
-  \ 'active_filetypes': ['php']
-  \}
-
-let g:syntastic_php_checkers=['php', 'phpcs', 'phpmd'] 
-
-" phpcs
-let g:syntastic_php_phpcs_args='--standard=$HOME/.phpconf/phpcs/ruleset.xml'
-
-" phpmd
-" codesize：循環的複雑度などコードサイズ関連部分を検出するルール
-" controversial：キャメルケースなど議論の余地のある部分を検出するルール
-" design：ソフトの設計関連の問題を検出するルール
-" naming：長すぎたり、短すぎたりする名前を検出するルール
-" unusedcode：使われていないコードを検出するルール
-" let g:syntastic_php_phpmd_post_args='codesize,controversial,design,unusedcode,naming'
-let g:syntastic_php_phpmd_post_args='$HOME/.phpconf/phpmd/ruleset.xml'
-
-" Githubに書かれているrecommended設定
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1 "エラーリスト更新
-let g:syntastic_auto_loc_list = 2 " 1:エラーの際にQuickFixが立ち上がる 2: 立ち上がらない
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-
-let g:syntastic_enable_signs        = 1
-let g:syntastic_echo_current_error  = 1
-let g:syntastic_enable_highlighting = 1
-let g:syntastic_php_php_args        = '-l'
+" NeoBundle 'scrooloose/syntastic'
+"
+" command! Err Errors
+"
+" " phpmd/phpcsだけのエラーリストを表示
+" command! Phpmd  SyntasticCheck phpmd
+" command! Phpmdl SyntasticCheck phpmd | Errors
+"
+" command! Phpcs  SyntasticCheck phpcs
+" command! Phpcsl SyntasticCheck phpcs | Errors
+"
+" let g:syntastic_mode_map = {
+"   \ 'mode': 'active',
+"   \ 'active_filetypes': ['php']
+"   \}
+"
+" let g:syntastic_php_checkers=['php', 'phpcs', 'phpmd'] 
+"
+" " phpcs
+" let g:syntastic_php_phpcs_args='--standard=$HOME/.phpconf/phpcs/ruleset.xml'
+"
+" let g:syntastic_php_phpmd_post_args='$HOME/.phpconf/phpmd/ruleset.xml'
+"
+" " Githubに書かれているrecommended設定
 " set statusline+=%#warningmsg#
 " set statusline+=%{SyntasticStatuslineFlag()}
 " set statusline+=%*
+"
+" let g:syntastic_always_populate_loc_list = 1 "エラーリスト更新
+" let g:syntastic_auto_loc_list = 2 " 1:エラーの際にQuickFixが立ち上がる 2: 立ち上がらない
+" let g:syntastic_check_on_open = 1
+" let g:syntastic_check_on_wq = 0
+"
+" let g:syntastic_enable_signs        = 1
+" let g:syntastic_echo_current_error  = 1
+" let g:syntastic_enable_highlighting = 1
+" let g:syntastic_php_php_args        = '-l'
+" " set statusline+=%#warningmsg#
+" " set statusline+=%{SyntasticStatuslineFlag()}
+" " set statusline+=%*
 
 "----------------------------------------------------
 " php_localvarcheck
