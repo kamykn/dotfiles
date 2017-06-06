@@ -10,22 +10,81 @@ bindkey -e      # emacs キーバインド
 ##================= リストの色つけの設定 =================##
 ##========================================================##
 alias ll='ls -l'
-alias ls='ls --color'
+# alias ls='ls --color' # linux
+alias ls='ls -G' # Unix
 
 ##========================================================##
 ##=================== プロンプトの設定 ===================##
 ##========================================================##
 autoload -U promptinit ; promptinit
 autoload -U colors     ; colors
+
 # プロンプトテーマを表示するコマンド
 # prompt -l
-# 基本のプロンプト
-PROMPT="%{$reset_color%}$ "
-# [場所] プロンプト
-PROMPT="%{$reset_color%}[%{$fg[red]%}%B%~%b%{$reset_color%}]$PROMPT"
+
 # 名前@マシン名 プロンプト
-PROMPT="%{$reset_color%}%{$fg[green]%}$USER%{$reset_color%}@%{$fg[cyan]%}%m%{$reset_color%}$PROMPT"
+# PROMPT="%{$reset_color%}%{$fg[green]%}$USER%{$reset_color%}@%{$fg[cyan]%}%m%{$reset_color%} "
+PROMPT="$USER@%m "
+
+# [場所] プロンプト
+PROMPT+="%{$reset_color%}%{$fg[red]%}%B%~%b%{$reset_color%} "
+
+# 右部分 [時間]
 RPROMPT="%{$fg[green]%}[%*]%{$reset_color%}"
+
+##====================================================##
+##========================= Git ======================##
+##====================================================##
+
+# vcs_infoロード
+autoload -Uz vcs_info
+# PROMPT変数内で変数参照する
+setopt prompt_subst
+
+# vcsの表示
+zstyle ':vcs_info:*' formats '%s][* %F{green}%b%f'
+zstyle ':vcs_info:*' actionformats '%s][* %F{green}%b%f(%F{red}%a%f)'
+
+# プロンプト表示直前にvcs_info呼び出し
+precmd() {
+	vcs_info
+}
+
+# vcs_info_msg_0_の書式設定
+zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
+zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
+zstyle ':vcs_info:*'     formats           "(%F{green}%b%f%c%u) "
+zstyle ':vcs_info:*'     actionformats     '(%b|%a) '
+
+# プロンプト表示
+PROMPT+='${vcs_info_msg_0_}'
+
+# gitコマンド補完
+# http://blog.qnyp.com/2013/05/14/zsh-git-completion/
+fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+
+autoload -U compinit
+compinit -u
+
+# fzfでブランチ名絞込チェックアウト
+# ローカルブランチ
+fbr() {
+  local branches branch
+  branches=$(git branch) &&
+  branch=$(echo "$branches" | fzf +s +m) &&
+  git checkout $(echo "$branch" | sed "s/.* //")
+}
+
+
+# ローカルブランチ
+fbrl() {
+	local branches branch
+	branches=$(git branch --all | grep -v HEAD) &&
+	branch=$(echo "$branches" |
+	fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+	git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
+}
 
 ##========================================================##
 ##====================== 履歴の設定 ======================##
@@ -72,9 +131,11 @@ setopt rm_star_wait           # rm * を実行する前に確認
 
 export PATH=~/local/bin:$PATH # ローカルのパスを優先する
 
-
 ##====================================================##
 ##===================StatusBar Plugin=================##
 ##====================================================##
 
 export TERM=xterm-256color
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
