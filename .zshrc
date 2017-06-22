@@ -27,7 +27,7 @@ autoload -U colors     ; colors
 PROMPT="$USER@%m "
 
 # [場所] プロンプト
-PROMPT+="%{$reset_color%}%{$fg[red]%}%B%~%b%{$reset_color%} "
+PROMPT+="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%} "
 
 # 右部分 [時間]
 RPROMPT="%{$fg[green]%}[%*]%{$reset_color%}"
@@ -60,31 +60,43 @@ zstyle ':vcs_info:*'     actionformats     '(%b|%a) '
 # プロンプト表示
 PROMPT+='${vcs_info_msg_0_}'
 
-# gitコマンド補完
-# http://blog.qnyp.com/2013/05/14/zsh-git-completion/
-fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-
-autoload -U compinit
-compinit -u
-
 # fzfでブランチ名絞込チェックアウト
 # ローカルブランチ
 fbr() {
-  local branches branch
-  branches=$(git branch) &&
-  branch=$(echo "$branches" | fzf +s +m) &&
-  git checkout $(echo "$branch" | sed "s/.* //")
+	local branches branch
+	branches=$(git branch) &&
+	branch=$(echo "$branches" | fzf +s +m) &&
+	git checkout $(echo "$branch" | sed "s/.* //")
 }
 
 
-# ローカルブランチ
-fbrl() {
+# リモートランチ
+fbrm() {
 	local branches branch
 	branches=$(git branch --all | grep -v HEAD) &&
 	branch=$(echo "$branches" |
 	fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
 	git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
+
+##========================================================##
+##====================== 補完の設定 ======================##
+##========================================================##
+
+# gitコマンド補完
+# http://blog.qnyp.com/2013/05/14/zsh-git-completion/
+
+# 補完スクリプト配置先
+fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+fpath=(~/.zsh/.zsh-completions $fpath)
+
+# 補完設定
+autoload -U compinit
+compinit -u
+# 補完対象
+zstyle ':completion:*:sudo:*' command-path /usr/local/sbin /usr/local/bin \
+                             /usr/sbin /usr/bin /sbin /bin /usr/X11R6/bin \
+                             /usr/local/git/bin
 
 ##========================================================##
 ##====================== 履歴の設定 ======================##
@@ -136,6 +148,13 @@ export PATH=~/local/bin:$PATH # ローカルのパスを優先する
 ##====================================================##
 
 export TERM=xterm-256color
+
+
+##====================================================##
+##==================== enable z cmd ==================##
+##====================================================##
+. /usr/local/etc/profile.d/z.sh
+
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 

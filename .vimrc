@@ -130,10 +130,11 @@ set rtp+=~/.fzf
 " replace of Ctrl-p
 nnoremap <C-p> :FZF<CR>
 
-nnoremap <C-q> :FZFQuickfix<CR>
+" nnoremap <C-q> :FZFQuickfix<CR>
 
+:command! Fq FZFQuickfix
 :command! Fmru FZFMru
-:command! Fb FufBufferTag
+:command! Fb FZFBuffer
 
 " [MRU] ========================================
 " 
@@ -167,13 +168,13 @@ endfunction
 " [QuickFix] ===================================
 "
 command! FZFQuickfix call fzf#run({
-			\  'source':  Get_qf_text_lists(),
+			\  'source':  Get_qf_text_list(),
 			\  'sink':    function('s:qf_sink'),
 			\  'options': '-m -x +s',
 			\  'down':    '40%'})
 
 " QuickFix形式にqfListから文字列を生成する
-function! Get_qf_text_lists()
+function! Get_qf_text_list()
 	let qflist = getqflist()
 	let textList = []
 	for i in qflist
@@ -276,6 +277,13 @@ NeoBundle 'tpope/vim-fugitive'
 :command! Gmv  Gmove
 :command! Grm  Gremove
 :command! Gbl  Gblame
+
+
+"----------------------------------------------------
+" vim gitgutter
+"----------------------------------------------------
+
+NeoBundle 'airblade/vim-gitgutter'
 
 
 "----------------------------------------------------
@@ -448,8 +456,15 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
 NeoBundle 'w0rp/ale.git'
 
 " ErrorをQuickFixに流す
-let g:ale_set_loclist = 0
-let g:ale_set_quickfix = 1
+" let g:ale_set_loclist = 0
+" let g:ale_set_quickfix = 1
+
+" 編集中にale走らないように
+" g:ale_lint_on_saveはデフォルトでon
+let g:ale_lint_on_text_changed = 'never'
+
+" 開いたときにale走らないように
+" let g:ale_lint_on_enter = 0
 
 " ruleset
 let g:ale_php_phpcs_standard = $HOME.'/.phpconf/phpcs/ruleset.xml'
@@ -548,6 +563,17 @@ nmap <C-l> :TagbarToggle<CR>
 " tagbar の設定
 let g:tagbar_width = 50        " 初期設定はwidth=40
 let g:tagbar_autoshowtag = 1   ":TagbarShowTag を叩かなくても有効にする
+
+let g:tagbar_type_php  = {
+	\ 'ctagstype' : 'php',
+	\ 'kinds'     : [
+	\ 	'i:interfaces',
+	\ 	'c:classes',
+	\ 	'd:constant definitions',
+	\ 	'f:functions',
+	\ 	'j:javascript functions:1'
+	\ ]
+	\ }
 
 
 "----------------------------------------------------
