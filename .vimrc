@@ -526,6 +526,27 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " " set statusline+=%{SyntasticStatuslineFlag()}
 " " set statusline+=%*
 
+
+"----------------------------------------------------
+" phpcomplete 
+" omni補完強化
+"----------------------------------------------------
+" Better class detection:
+" Recognize /* @var $yourvar YourClass */ type mark comments
+" Recognize $instance = new Class; class instantiations
+" Recognize $instance = Class::getInstance(); singleton instances
+" Recognize $date = DateTime::createFromFormat(...) built-in class return types
+" Recognize type hinting in function prototypes
+" Recognize types in @param lines in function docblocks
+" Recognize $object = SomeClass::staticCall(...) return types from docblocks
+" Recognize array of objects via docblock like $foo[42]-> or for variables created in foreach
+
+" 但しautoComplPopには上手く入ってこない
+" C-x oを利用すること
+
+NeoBundle 'shawncplus/phpcomplete.vim'
+
+
 "----------------------------------------------------
 " php_localvarcheck
 " PHPの未定義変数アラート
