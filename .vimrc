@@ -600,16 +600,20 @@ let g:tagbar_type_php  = {
 "----------------------------------------------------
 " Ctags コマンド自動化
 "----------------------------------------------------
-" :TagsGenerate
+" Vimからタグ作り直せる
+" :TagsGenerate!
 " 大きめのプロジェクトでは生成に少し時間がかかる
+
 NeoBundle 'szw/vim-tags'
 
-" ctagsをインストールし、下記のコマンドを実行
-" ctags -f ~/.tags -R ~/project/ --exclude=.git --exclude=.svn
+" Universal Ctagsをインストール
+" brew tap universal-ctags/universal-ctags
+" brew install --HEAD universal-ctags
+" 
+" かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
+" brew uninstall ctags
 "
-" それか、Vimからタグ作り直せる
-" :TagsGenerate!
-"
+" [旧メモ]
 " Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
 " FYI:https://gist.github.com/nazgob/1570678
 "
