@@ -129,6 +129,7 @@ set rtp+=~/.fzf
 
 " replace of Ctrl-p
 nnoremap <C-p> :FZF<CR>
+nnoremap <C-b> :Fb<CR>
 
 " nnoremap <C-q> :FZFQuickfix<CR>
 
@@ -197,6 +198,37 @@ function! s:qf_sink(line)
 endfunction
 
 
+"------------------------------------------------------
+" Aspell spell checker 
+"------------------------------------------------------
+
+autocmd BufReadPost * call SpellCheck()
+autocmd BufWritePre * call SpellCheck()
+
+function! SpellCheck()
+
+	let w:matchList = []
+
+	" バッファ全て取得
+	let w:windowText = join(getline(0,'$'), " \\ \n")
+
+	" 余計な記号取っ払い
+	let w:windowText = substitute(w:windowText, '\v[^A-Za-z \t]', " ", "g")
+
+	" キャメルケースを単語ごとに分割
+	let w:windowText = substitute(w:windowText, '\v([A-Z][a-z]+)\C', " \\1", "g")
+
+	" Aspellでチェック
+	let w:spellBad = system("echo '" . expand(w:windowText) . "' | aspell list --lang=en --sug-mode=ultra | sort -u")
+	let w:spellBadList = split(w:spellBad, "\n")
+
+	for m in w:spellBadList
+		" 既存のSpellBadグループに突っ込む
+		if strlen(m) > 3 
+			call add(w:matchList, matchadd('SpellBad', '\zs' . expand(m) . '\ze\C'))
+		endif 
+	endfor
+endfunction
 
 
 "------------------------------------------------------
@@ -386,6 +418,7 @@ NeoBundle 'vim-scripts/AutoComplPop'
 inoremap <expr><TAB>  pumvisible() ? "\<C-y>" : "\<TAB>"
 set completeopt-=preview
 
+
 "----------------------------------------------------
 " Vim Neosnippet
 "----------------------------------------------------
@@ -546,6 +579,12 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 
 NeoBundle 'shawncplus/phpcomplete.vim'
 
+" composerなど使っている場合
+" phpcomplete-extendedもいれると幸せになれるらしい
+
+let g:phpcomplete_parse_docblock_comments = 1
+" let g:phpcomplete_search_tags_for_variables = 1
+
 
 "----------------------------------------------------
 " php_localvarcheck
@@ -692,15 +731,15 @@ endif
 " NeoBundleの前に書くと効かないらしい
 syntax on
 
-" 全体対象にスペルチェック
-syntax spell toplevel
-
 " Go用のセッティング。これがないとvim-goが動かない
 filetype plugin indent on
 
 " スペルチェック
-set spell
-set spelllang+=en,cjk
+" set spell
+" set spelllang+=en,cjk
+
+" 全体対象にスペルチェック
+" syntax spell toplevel
 
 hi clear SpellBad
 hi SpellBad cterm=underline
