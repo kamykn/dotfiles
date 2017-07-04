@@ -210,16 +210,13 @@ function! SpellCheck()
 	let w:matchList = []
 
 	" バッファ全て取得
-	let w:windowText = join(getline(0,'$'), " \\ \n")
-
-	" 余計な記号取っ払い
-	let w:windowText = substitute(w:windowText, '\v[^A-Za-z \t]', " ", "g")
+	let w:windowText = join(getline(0,'$'), "")
 
 	" キャメルケースを単語ごとに分割
 	let w:windowText = substitute(w:windowText, '\v([A-Z][a-z]+)\C', " \\1", "g")
 
 	" Aspellでチェック
-	let w:spellBad = system("echo '" . expand(w:windowText) . "' | aspell list --lang=en --sug-mode=ultra | sort -u")
+	let w:spellBad = system("echo " . shellescape(w:windowText) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
 	let w:spellBadList = split(w:spellBad, "\n")
 
 	for m in w:spellBadList
