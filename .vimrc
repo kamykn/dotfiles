@@ -202,30 +202,140 @@ endfunction
 " Aspell spell checker 
 "------------------------------------------------------
 
-autocmd BufReadPost * call SpellCheck()
-autocmd BufWritePre * call SpellCheck()
+function! s:aspell(checkStr) 
+	let l:checkStr = a:checkStr
+	let l:spellBadList = []
+	let l:currentPos = 0
+
+	while 1
+		if strlen(l:checkStr) < 1
+			break
+		endif
+
+		let [l:spellBadWord, l:errorType] = spellbadword(l:checkStr)
+		if empty(l:spellBadWord)
+			break
+		endif
+
+		" すでに見つかっているspellBadWordの場合スルー
+		if match(l:spellBadList, l:spellBadWord) >= 0
+			continue
+		endif
+
+		let l:wordLength = len(l:spellBadWord)
+
+		" 特定文字数以上のみ検出
+		if l:wordLength > 3
+			call add(l:spellBadList, l:spellBadWord)
+		endif
+
+		" 次の処理に向けて検出したとこまで文字列削除
+		let l:currentpos = stridx(l:checkStr, l:spellBadWord)
+		if l:currentpos < 0
+			break
+		endif 
+
+		let l:checkStr = strpart(l:checkStr, l:currentpos + l:wordLength)
+	endwhile
+
+	return l:spellBadList
+
+	" return spellbadword(a:checkStr)
+	" " return system("echo " . shellescape(a:checkStr) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
+	" "
+endfunction
+
+function! s:camelCaseToWords(camelCaseStr)
+	return substitute(a:camelCaseStr, '\v([A-Z][a-z]+)\C', " \\1", "g")
+endfunction
+
+function! s:getSuggestFixWords(checkWords) 
+	" let l:result =  system("echo " . shellescape(checkWords) . " | aspell pipe --lang=en --ignore-case")
+	" let l:wordsStartPos = stridx(l:result, ':')
+
+	let l:checkWords = s:camelCaseToWords(a:checkWords)
+	let l:checkWordsList = split(l:checkWords, ' ')
+
+	let l:wordSuggestList = []
+	for w in l:checkWordsList
+		let l:spellBadList = s:aspell(w)
+		if len(l:spellBadList) > 0
+			call add(l:wordSuggestList, spellsuggest(w, 25))
+		else
+			call add(l:wordSuggestList, [w])
+		endif
+	endfor
+
+	let l:suggestList = s:wordConbination(l:wordSuggestList, [])
+	echo l:suggestList
+
+" spellChack
+
+	" call complete(col('.'), l:suggestList)
+
+endfunction
+
+function! s:wordConbination(wordSuggestList, currentCombinationList)
+	let l:scanningWordList =  get(a:wordSuggestList, 0, [])
+
+	if len(l:scanningWordList) < 1
+		return a:currentCombinationList
+	endif
+
+	if len(a:currentCombinationList) < 1
+		let l:currentCombinationList = l:scanningWordList
+	else 
+		let l:currentCombinationList = []
+		for c in a:currentCombinationList
+			for w in l:scanningWordList
+				call add(l:currentCombinationList, c.w)
+			endfor
+		endfor
+	endif
+
+	let l:wordSuggestList = a:wordSuggestList
+	unlet l:wordSuggestList[0]
+
+	return s:wordConbination(l:wordSuggestList, l:currentCombinationList)
+endfunction
+
+
+function! OpenSpellFixList()
+	let l:cword = expand('<cword>')
+	let suggestFixWords = s:getSuggestFixWords(l:cword)
+endfunction
 
 function! SpellCheck()
 
-	let w:matchList = []
+	let l:matchList = []
 
 	" バッファ全て取得
-	let w:windowText = join(getline(0,'$'), "")
+	let l:windowText = join(getline(0,'$'), "")
 
 	" キャメルケースを単語ごとに分割
-	let w:windowText = substitute(w:windowText, '\v([A-Z][a-z]+)\C', " \\1", "g")
+	let l:windowText = s:camelCaseToWords(l:windowText)
 
 	" Aspellでチェック
-	let w:spellBad = system("echo " . shellescape(w:windowText) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
-	let w:spellBadList = split(w:spellBad, "\n")
+	" let w:spellBad = system("echo " . shellescape(w:windowText) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
+	" let w:spellBad = s:aspell(w:windowText)
+	" let w:spellBadList = split(w:spellBad, "\n")
+	
+	let l:spellBadList = s:aspell(l:windowText)
 
-	for m in w:spellBadList
+echo l:spellBadList
+
+	for m in l:spellBadList
 		" 既存のSpellBadグループに突っ込む
 		if strlen(m) > 3 
-			call add(w:matchList, matchadd('SpellBad', '\zs' . expand(m) . '\ze\C'))
+			call add(l:matchList, matchadd('SpellBad', '\zs' . expand(m) . '\ze\C'))
 		endif 
 	endfor
 endfunction
+
+" autocmd BufReadPost * call SpellCheck()
+" autocmd BufWritePre * call SpellCheck()
+
+
 
 
 "------------------------------------------------------
@@ -732,8 +842,8 @@ syntax on
 filetype plugin indent on
 
 " スペルチェック
-" set spell
-" set spelllang+=en,cjk
+set spell
+set spelllang+=en,cjk
 
 " 全体対象にスペルチェック
 " syntax spell toplevel
