@@ -245,64 +245,90 @@ function! s:aspell(checkStr)
 	" "
 endfunction
 
-function! s:camelCaseToWords(camelCaseStr)
-	return substitute(a:camelCaseStr, '\v([A-Z][a-z]+)\C', " \\1", "g")
+function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
+	let splitBy = ' '
+
+	let l:words = substitute(a:camelCaseStr, '\v([A-Z][a-z]+)\C', l:splitBy . "\\1", "g")
+	if a:shouldBeReturnList
+		let l:words = split(l:words, ' ')
+	endif
+
+	return l:words
 endfunction
 
-function! s:getSuggestFixWords(checkWords) 
-	" let l:result =  system("echo " . shellescape(checkWords) . " | aspell pipe --lang=en --ignore-case")
-	" let l:wordsStartPos = stridx(l:result, ':')
+function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos, offset)
+	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
 
-	let l:checkWords = s:camelCaseToWords(a:checkWords)
-	let l:checkWordsList = split(l:checkWords, ' ')
-
-	let l:wordSuggestList = []
-	for w in l:checkWordsList
-		let l:spellBadList = s:aspell(w)
-		if len(l:spellBadList) > 0
-			call add(l:wordSuggestList, spellsuggest(w, 25))
-		else
-			call add(l:wordSuggestList, [w])
+	" 単語の末尾よりもカーソルが左だった場合、curColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
+	let l:curPosInWord = 0
+	for i in l:wordIndexList
+		if i <= a:curColPos && a:curColPos <= i + strlen(a:cword)
+			let l:curPosInWord = a:curColPos - i 
+			break
 		endif
 	endfor
 
-	let l:suggestList = s:wordConbination(l:wordSuggestList, [])
-	echo l:suggestList
+	let l:checkWordsList = s:camelCaseToWords(a:cword, 1)
+	let l:lastWordLength = 0
+	for w in l:checkWordsList
+		if l:curPosInWord <= strlen(w) + l:lastWordLength
+			return w
+		endif
+		let l:lastWordLength += strlen(w)
+	endfor
 
-" spellChack
+	return get(l:checkWordsList, 0, a:cword)
+endfunction
 
-	" call complete(col('.'), l:suggestList)
+" 単語のポジションリストを返して、ポジションスタート + 単語長の中にcurposがあればそこが現在位置
+function! s:findWordIndexList(lineStr, cword)
+	let l:cwordLength = strlen(a:cword)
+	let l:findWordIndexList = []
+
+	let l:lineStr = a:lineStr
+	while 1
+		let l:tmpCwordPos = stridx(l:lineStr, a:cword)
+		if l:tmpCwordPos < 0
+			break
+		endif
+
+		call add(l:findWordIndexList, l:tmpCwordPos)
+		let l:lineStr = strpart(l:lineStr, l:tmpCwordPos + l:cwordLength)
+	endwhile
+
+	return l:findWordIndexList
 
 endfunction
 
-function! s:wordConbination(wordSuggestList, currentCombinationList)
-	let l:scanningWordList =  get(a:wordSuggestList, 0, [])
-
-	if len(l:scanningWordList) < 1
-		return a:currentCombinationList
-	endif
-
-	if len(a:currentCombinationList) < 1
-		let l:currentCombinationList = l:scanningWordList
-	else 
-		let l:currentCombinationList = []
-		for c in a:currentCombinationList
-			for w in l:scanningWordList
-				call add(l:currentCombinationList, c.w)
-			endfor
-		endfor
-	endif
-
-	let l:wordSuggestList = a:wordSuggestList
-	unlet l:wordSuggestList[0]
-
-	return s:wordConbination(l:wordSuggestList, l:currentCombinationList)
-endfunction
-
+" 単語ごとにサジェストするようにしたい(この関数いらない)
+" function! s:wordConbination(wordSuggestList, currentCombinationList)
+" 	let l:scanningWordList =  get(a:wordSuggestList, 0, [])
+"
+" 	if len(l:scanningWordList) < 1
+" 		return a:currentCombinationList
+" 	endif
+"
+" 	if len(a:currentCombinationList) < 1
+" 		let l:currentCombinationList = l:scanningWordList
+" 	else 
+" 		let l:currentCombinationList = []
+" 		for c in a:currentCombinationList
+" 			for w in l:scanningWordList
+" 				call add(l:currentCombinationList, c.w)
+" 			endfor
+" 		endfor
+" 	endif
+"
+" 	let l:wordSuggestList = a:wordSuggestList
+" 	unlet l:wordSuggestList[0]
+"
+" 	return s:wordConbination(l:wordSuggestList, l:currentCombinationList)
+" endfunction
 
 function! OpenSpellFixList()
-	let l:cword = expand('<cword>')
-	let suggestFixWords = s:getSuggestFixWords(l:cword)
+	let l:CurrentCamelCaseWord = s:searchCurrentCamelCaseWord(getline('.'), expand("<cword>"), col('.'), 0)
+	let l:spellSuggestList = spellsuggest(l:CurrentCamelCaseWord, 25)
+	echo l:spellSuggestList
 endfunction
 
 function! SpellCheck()
@@ -313,7 +339,7 @@ function! SpellCheck()
 	let l:windowText = join(getline(0,'$'), "")
 
 	" キャメルケースを単語ごとに分割
-	let l:windowText = s:camelCaseToWords(l:windowText)
+	let l:windowText = s:camelCaseToWords(l:windowText, 0)
 
 	" Aspellでチェック
 	" let w:spellBad = system("echo " . shellescape(w:windowText) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
