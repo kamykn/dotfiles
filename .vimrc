@@ -202,7 +202,7 @@ endfunction
 " Aspell spell checker 
 "------------------------------------------------------
 
-function! s:aspell(checkStr) 
+function! s:findSpellBadList(checkStr) 
 	let l:checkStr = a:checkStr
 	let l:spellBadList = []
 	let l:currentPos = 0
@@ -239,10 +239,6 @@ function! s:aspell(checkStr)
 	endwhile
 
 	return l:spellBadList
-
-	" return spellbadword(a:checkStr)
-	" " return system("echo " . shellescape(a:checkStr) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
-	" "
 endfunction
 
 function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
@@ -256,14 +252,16 @@ function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
 	return l:words
 endfunction
 
-function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos, offset)
+function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos)
 	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
 
 	" 単語の末尾よりもカーソルが左だった場合、curColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
 	let l:curPosInWord = 0
+	let l:curWordStartPosInLine = 0
 	for i in l:wordIndexList
 		if i <= a:curColPos && a:curColPos <= i + strlen(a:cword)
 			let l:curPosInWord = a:curColPos - i 
+			let l:curWordStartPosInLine = i
 			break
 		endif
 	endfor
@@ -272,12 +270,12 @@ function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos, offset)
 	let l:lastWordLength = 0
 	for w in l:checkWordsList
 		if l:curPosInWord <= strlen(w) + l:lastWordLength
-			return w
+			return [w, l:curPosInWord, l:curWordStartPosInLine]
 		endif
 		let l:lastWordLength += strlen(w)
 	endfor
 
-	return get(l:checkWordsList, 0, a:cword)
+	return [get(l:checkWordsList, 0, a:cword), 0, 0]
 endfunction
 
 " 単語のポジションリストを返して、ポジションスタート + 単語長の中にcurposがあればそこが現在位置
@@ -300,35 +298,41 @@ function! s:findWordIndexList(lineStr, cword)
 
 endfunction
 
-" 単語ごとにサジェストするようにしたい(この関数いらない)
-" function! s:wordConbination(wordSuggestList, currentCombinationList)
-" 	let l:scanningWordList =  get(a:wordSuggestList, 0, [])
-"
-" 	if len(l:scanningWordList) < 1
-" 		return a:currentCombinationList
-" 	endif
-"
-" 	if len(a:currentCombinationList) < 1
-" 		let l:currentCombinationList = l:scanningWordList
-" 	else 
-" 		let l:currentCombinationList = []
-" 		for c in a:currentCombinationList
-" 			for w in l:scanningWordList
-" 				call add(l:currentCombinationList, c.w)
-" 			endfor
-" 		endfor
-" 	endif
-"
-" 	let l:wordSuggestList = a:wordSuggestList
-" 	unlet l:wordSuggestList[0]
-"
-" 	return s:wordConbination(l:wordSuggestList, l:currentCombinationList)
-" endfunction
-
 function! OpenSpellFixList()
-	let l:CurrentCamelCaseWord = s:searchCurrentCamelCaseWord(getline('.'), expand("<cword>"), col('.'), 0)
-	let l:spellSuggestList = spellsuggest(l:CurrentCamelCaseWord, 25)
+	let [l:currentCamelCaseWord, l:curPosInWord, l:curWordStartPosInLine] = s:searchCurrentCamelCaseWord(getline('.'), expand("<cword>"), col('.'))
+	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
 	echo l:spellSuggestList
+
+	let l:spellSuggestListForInputList = []
+	let i = 1
+	for s in l:spellSuggestList
+		let l:indexStr = (i < 10) ? ' ' . i : i
+		call add(l:spellSuggestListForInputList, l:indexStr . ': ' . s)
+		let i += 1
+	endfor
+
+	let l:selected = inputlist(l:spellSuggestListForInputList)
+	let l:selectedWord = l:spellSuggestList[l:selected - 1]
+	echo l:selectedWord
+	
+	" 2単語の場合連結
+	if stridx(l:selectedWord, ' ') > 0
+		let l:selectedWords = split(l:selectedWord, ' ')
+		let l:selectedWord = ''
+		for w in l:selectedWords
+			let l:selectedWord = l:selectedWord . toupper(w[0]) . w[1:-1]
+		endfor
+	endif
+
+	" 先頭大文字小文字
+	if l:curPosInWord == 0
+		let l:selectedWord = tolower(l:selectedWord[0]) . l:selectedWord[1:-1]
+	else 
+		let l:selectedWord = toupper(l:selectedWord[0]) . l:selectedWord[1:-1]
+	endif
+
+	echo l:selectedWord
+
 endfunction
 
 function! SpellCheck()
@@ -340,15 +344,8 @@ function! SpellCheck()
 
 	" キャメルケースを単語ごとに分割
 	let l:windowText = s:camelCaseToWords(l:windowText, 0)
-
-	" Aspellでチェック
-	" let w:spellBad = system("echo " . shellescape(w:windowText) . " | aspell list --lang=en --sug-mode=ultra --ignore-case | sort -u")
-	" let w:spellBad = s:aspell(w:windowText)
-	" let w:spellBadList = split(w:spellBad, "\n")
 	
-	let l:spellBadList = s:aspell(l:windowText)
-
-echo l:spellBadList
+	let l:spellBadList = s:findSpellBadList(l:windowText)
 
 	for m in l:spellBadList
 		" 既存のSpellBadグループに突っ込む
