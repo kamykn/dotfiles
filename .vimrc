@@ -217,25 +217,25 @@ function! s:findSpellBadList(checkStr)
 			break
 		endif
 
+		" 次の処理に向けて検出したとこまで文字列削除
+		let l:currentPos = stridx(l:checkStr, l:spellBadWord)
+		if l:currentPos < 0
+			break
+		endif 
+
+		let l:wordLength = len(l:spellBadWord)
+
+		let l:checkStr = strpart(l:checkStr, l:currentPos + l:wordLength)
+
 		" すでに見つかっているspellBadWordの場合スルー
 		if match(l:spellBadList, l:spellBadWord) >= 0
 			continue
 		endif
 
-		let l:wordLength = len(l:spellBadWord)
-
 		" 特定文字数以上のみ検出
 		if l:wordLength > 3
 			call add(l:spellBadList, l:spellBadWord)
 		endif
-
-		" 次の処理に向けて検出したとこまで文字列削除
-		let l:currentpos = stridx(l:checkStr, l:spellBadWord)
-		if l:currentpos < 0
-			break
-		endif 
-
-		let l:checkStr = strpart(l:checkStr, l:currentpos + l:wordLength)
 	endwhile
 
 	return l:spellBadList
@@ -253,38 +253,41 @@ function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
 endfunction
 
 function! s:searchCurrentCamelCaseWord(lineStr, cword, currentColPos)
-	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
+	" let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
 
 	" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
-	let l:colPosInCWord = 0
-	let l:wordStartPosInCWord = 0
-	for i in l:wordIndexList
-		if i <= a:currentColPos && a:currentColPos <= i + strlen(a:cword)
-			" 現在のカーソル位置がcwordの中で何文字目か
-			let l:colPosInCWord = a:currentColPos - i 
-			" その単語がcwordの中で何文字目から始まるか
-			let l:wordStartPosInCWord = i - get(l:wordIndexList, 0, 0)
-			break
-		endif
-	endfor
+	let [l:wordPos, l:cwordPos] = s:getCamelCaseWordPos(a:lineStr, a:cword, a:currentColPos)
+
+	" 現在のカーソル位置がcwordの中で何文字目か
+	let l:colPosInCWord = a:currentColPos - l:wordPos 
+	" その単語がcwordの中で何文字目から始まるか
+	let l:wordStartPosInCWord = l:wordPos - l:cwordPos
 
 	let l:checkWordsList = s:camelCaseToWords(a:cword, 1)
 	let l:lastWordLength = 0
 	for w in l:checkWordsList
 		if l:colPosInCWord <= strlen(w) + l:lastWordLength
-			let l:wordIndexList = s:findWardIndexList(a:cword, w)
-			" 関数化して共通化
-			for i in l:wordIndexList
-				if i <= l:colPosInCWord && l:colPosInCWord <= i + strlen(w)
-					return [w, l:colPosInCWord, i]
-				endif
-			endfor
-			
+			let [l:wordPos, l:tmp] = s:getCamelCaseWordPos(a:cword, w, l:colPosInCWord)
+			return [w, l:colPosInCWord, l:wordPos]
 		endif
 		let l:lastWordLength += strlen(w)
 	endfor
 
 	return [get(l:checkWordsList, 0, a:cword), 0, 0]
+endfunction
+
+" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
+" return [キャメルケース上のカーソルがある単語の開始位置, cword全体の開始位置]
+function! s:getCamelCaseWordPos(lineStr, cword, currentColPos) 
+	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
+
+	for i in l:wordIndexList
+		if i <= a:currentColPos && a:currentColPos <= i + strlen(a:cword)
+			return [i, get(l:wordIndexList, 0, 0)]
+		endif
+	endfor
+	
+	return [0, 0]
 endfunction
 
 " 単語のポジションリストを返して、ポジションスタート + 単語長の中にcurposがあればそこが現在位置
@@ -304,7 +307,6 @@ function! s:findWordIndexList(lineStr, cword)
 	endwhile
 
 	return l:findWordIndexList
-
 endfunction
 
 function! OpenSpellFixList()
@@ -312,14 +314,30 @@ function! OpenSpellFixList()
 	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentCamelCaseWord(getline('.'), l:cword, col('.'))
 
 	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
-	let l:selectIndexStrlen = strlen(len(l:spellSuggestList))
+	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
 
+	let l:selected = inputlist(l:spellSuggestListForInputList)
+	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
+
+	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
+	let l:replace .= l:selectedWord
+	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
+
+	" 書き換えてカーソルポジションを直す
+	execute "normal ciw" . l:replace
+	execute ":normal b" . l:colPosInCWord . "l"
+endfunction
+
+function! s:getSpellSuggestList(spellSuggestList, currentCamelCaseWord, cword) 
 	" 変換候補選択用リスト
 	let l:spellSuggestListForInputList = []
 	" 変換候補リプレイス用リスト
 	let l:spellSuggestListForReplace = []
+
+	let l:selectIndexStrlen = strlen(len(a:spellSuggestList))
+
 	let i = 1
-	for s in l:spellSuggestList
+	for s in a:spellSuggestList
 		let l:indexStr = printf("%" . l:selectIndexStrlen . "d", i) . ': '
 
 		" 記号削除
@@ -336,38 +354,21 @@ function! OpenSpellFixList()
 		endif
 
 		" 先頭大文字小文字
-		if stridx(l:cword, l:currentCamelCaseWord) == 0
+		if stridx(a:cword, a:currentCamelCaseWord) == 0
 			let s = tolower(s[0]) . s[1:-1]
 		else 
 			let s = toupper(s[0]) . s[1:-1]
 		endif
 
 		call add(l:spellSuggestListForReplace, s)
-		call add(l:spellSuggestListForInputList, l:indexStr . s)
+		call add(l:spellSuggestListForInputList, l:indexStr . '"' . s . '"')
 		let i += 1
 	endfor
 
-	let l:selected = inputlist(l:spellSuggestListForInputList)
-	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
-
-	" let l:replace = substitute(l:cword, l:currentCamelCaseWord, l:selectedWord, 'g')
-	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
-	echo l:replace
-	echo l:wordStartPosInCWord
-	let l:replace .= l:selectedWord
-	echo l:replace
-	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
-	echo l:replace
-	" let l:replace = substitute(, l:currentCamelCaseWord, l:selectedWord, 'g')
-
-	" 書き換えてカーソルポジションを直す
-	execute "normal ciw" . l:replace
-	execute ":normal b" . l:colPosInCWord . "l"
-
+	return [l:spellSuggestListForInputList, l:spellSuggestListForReplace]
 endfunction
 
 function! SpellCheck()
-
 	let l:matchList = []
 
 	" バッファ全て取得
@@ -375,7 +376,7 @@ function! SpellCheck()
 
 	" キャメルケースを単語ごとに分割
 	let l:windowText = s:camelCaseToWords(l:windowText, 0)
-	
+
 	let l:spellBadList = s:findSpellBadList(l:windowText)
 
 	for m in l:spellBadList
@@ -386,8 +387,8 @@ function! SpellCheck()
 	endfor
 endfunction
 
-" autocmd BufReadPost * call SpellCheck()
-" autocmd BufWritePre * call SpellCheck()
+autocmd BufReadPost * call SpellCheck()
+autocmd BufWritePre * call SpellCheck()
 
 
 
