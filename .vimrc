@@ -252,16 +252,18 @@ function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
 	return l:words
 endfunction
 
-function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos)
+function! s:searchCurrentCamelCaseWord(lineStr, cword, currentColPos)
 	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
 
-	" 単語の末尾よりもカーソルが左だった場合、curColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
-	let l:curPosInWord = 0
-	let l:curWordStartPosInLine = 0
+	" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
+	let l:colPosInCWord = 0
+	let l:wordStartPosInCWord = 0
 	for i in l:wordIndexList
-		if i <= a:curColPos && a:curColPos <= i + strlen(a:cword)
-			let l:curPosInWord = a:curColPos - i 
-			let l:curWordStartPosInLine = i
+		if i <= a:currentColPos && a:currentColPos <= i + strlen(a:cword)
+			" 現在のカーソル位置がcwordの中で何文字目か
+			let l:colPosInCWord = a:currentColPos - i 
+			" その単語がcwordの中で何文字目から始まるか
+			let l:wordStartPosInCWord = i - get(l:wordIndexList, 0, 0)
 			break
 		endif
 	endfor
@@ -269,8 +271,15 @@ function! s:searchCurrentCamelCaseWord(lineStr, cword, curColPos)
 	let l:checkWordsList = s:camelCaseToWords(a:cword, 1)
 	let l:lastWordLength = 0
 	for w in l:checkWordsList
-		if l:curPosInWord <= strlen(w) + l:lastWordLength
-			return [w, l:curPosInWord, l:curWordStartPosInLine]
+		if l:colPosInCWord <= strlen(w) + l:lastWordLength
+			let l:wordIndexList = s:findWardIndexList(a:cword, w)
+			" 関数化して共通化
+			for i in l:wordIndexList
+				if i <= l:colPosInCWord && l:colPosInCWord <= i + strlen(w)
+					return [w, l:colPosInCWord, i]
+				endif
+			endfor
+			
 		endif
 		let l:lastWordLength += strlen(w)
 	endfor
@@ -299,39 +308,61 @@ function! s:findWordIndexList(lineStr, cword)
 endfunction
 
 function! OpenSpellFixList()
-	let [l:currentCamelCaseWord, l:curPosInWord, l:curWordStartPosInLine] = s:searchCurrentCamelCaseWord(getline('.'), expand("<cword>"), col('.'))
-	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
-	echo l:spellSuggestList
+	let l:cword = expand("<cword>")
+	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentCamelCaseWord(getline('.'), l:cword, col('.'))
 
+	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
+	let l:selectIndexStrlen = strlen(len(l:spellSuggestList))
+
+	" 変換候補選択用リスト
 	let l:spellSuggestListForInputList = []
+	" 変換候補リプレイス用リスト
+	let l:spellSuggestListForReplace = []
 	let i = 1
 	for s in l:spellSuggestList
-		let l:indexStr = (i < 10) ? ' ' . i : i
-		call add(l:spellSuggestListForInputList, l:indexStr . ': ' . s)
+		let l:indexStr = printf("%" . l:selectIndexStrlen . "d", i) . ': '
+
+		" 記号削除
+		let s = substitute(s, '\.', " ", "g")
+
+		" 2単語の場合連結
+		if stridx(s, ' ') > 0
+			let s = substitute(s, '\s', ' ', 'g')
+			let l:suggestWords = split(s, ' ')
+			let s = ''
+			for w in l:suggestWords
+				let s = s . toupper(w[0]) . w[1:-1]
+			endfor
+		endif
+
+		" 先頭大文字小文字
+		if stridx(l:cword, l:currentCamelCaseWord) == 0
+			let s = tolower(s[0]) . s[1:-1]
+		else 
+			let s = toupper(s[0]) . s[1:-1]
+		endif
+
+		call add(l:spellSuggestListForReplace, s)
+		call add(l:spellSuggestListForInputList, l:indexStr . s)
 		let i += 1
 	endfor
 
 	let l:selected = inputlist(l:spellSuggestListForInputList)
-	let l:selectedWord = l:spellSuggestList[l:selected - 1]
-	echo l:selectedWord
-	
-	" 2単語の場合連結
-	if stridx(l:selectedWord, ' ') > 0
-		let l:selectedWords = split(l:selectedWord, ' ')
-		let l:selectedWord = ''
-		for w in l:selectedWords
-			let l:selectedWord = l:selectedWord . toupper(w[0]) . w[1:-1]
-		endfor
-	endif
+	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
 
-	" 先頭大文字小文字
-	if l:curPosInWord == 0
-		let l:selectedWord = tolower(l:selectedWord[0]) . l:selectedWord[1:-1]
-	else 
-		let l:selectedWord = toupper(l:selectedWord[0]) . l:selectedWord[1:-1]
-	endif
+	" let l:replace = substitute(l:cword, l:currentCamelCaseWord, l:selectedWord, 'g')
+	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
+	echo l:replace
+	echo l:wordStartPosInCWord
+	let l:replace .= l:selectedWord
+	echo l:replace
+	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
+	echo l:replace
+	" let l:replace = substitute(, l:currentCamelCaseWord, l:selectedWord, 'g')
 
-	echo l:selectedWord
+	" 書き換えてカーソルポジションを直す
+	execute "normal ciw" . l:replace
+	execute ":normal b" . l:colPosInCWord . "l"
 
 endfunction
 
