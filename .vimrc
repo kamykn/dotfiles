@@ -93,6 +93,9 @@ augroup vimrcEx
   \ exe "normal g`\"" | endif
 augroup END
 
+" MySQLのsyntax highlight
+let g:sql_type_default = 'mysql' 
+
 
 "------------------------------------------------------
 " misc alias 
@@ -199,33 +202,24 @@ endfunction
 
 
 "------------------------------------------------------
-" Aspell spell checker 
+" CamelCase Spell Checker 
 "------------------------------------------------------
 
-function! s:findSpellBadList(checkStr) 
-	let l:checkStr = a:checkStr
+function! s:findSpellBadList(wordList) 
 	let l:spellBadList = []
 	let l:currentPos = 0
 
-	while 1
-		if strlen(l:checkStr) < 1
-			break
+	for w in a:wordList
+		if strlen(w) < 1
+			continue
 		endif
 
-		let [l:spellBadWord, l:errorType] = spellbadword(l:checkStr)
+		let [l:spellBadWord, l:errorType] = spellbadword(w)
 		if empty(l:spellBadWord)
-			break
+			continue
 		endif
-
-		" 次の処理に向けて検出したとこまで文字列削除
-		let l:currentPos = stridx(l:checkStr, l:spellBadWord)
-		if l:currentPos < 0
-			break
-		endif 
 
 		let l:wordLength = len(l:spellBadWord)
-
-		let l:checkStr = strpart(l:checkStr, l:currentPos + l:wordLength)
 
 		" すでに見つかっているspellBadWordの場合スルー
 		if match(l:spellBadList, l:spellBadWord) >= 0
@@ -236,25 +230,32 @@ function! s:findSpellBadList(checkStr)
 		if l:wordLength > 3
 			call add(l:spellBadList, l:spellBadWord)
 		endif
-	endwhile
+	endfor
 
 	return l:spellBadList
 endfunction
 
-function! s:camelCaseToWords(camelCaseStr, shouldBeReturnList)
-	let splitBy = ' '
+" キャメルケースを単語ごとに分割
+function! s:camelCaseToWords(camelCaseWordList)
+	let l:splitBy = ' '
+	let l:wordsList = []
 
-	let l:words = substitute(a:camelCaseStr, '\v([A-Z][a-z]+)\C', l:splitBy . "\\1", "g")
-	if a:shouldBeReturnList
-		let l:words = split(l:words, ' ')
-	endif
+	for c in a:camelCaseWordList
+		let l:splittedWord = split(substitute(c, '\v([A-Z][a-z]*)\C', l:splitBy . "\\1", "g"), l:splitBy)
 
-	return l:words
+		for s in l:splittedWord
+			if match(l:wordsList, s) >= 0
+				continue
+			endif
+
+			call add(l:wordsList, s)
+		endfor
+	endfor
+
+	return l:wordsList
 endfunction
 
 function! s:searchCurrentCamelCaseWord(lineStr, cword, currentColPos)
-	" let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
-
 	" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
 	let [l:wordPos, l:cwordPos] = s:getCamelCaseWordPos(a:lineStr, a:cword, a:currentColPos)
 
@@ -263,7 +264,7 @@ function! s:searchCurrentCamelCaseWord(lineStr, cword, currentColPos)
 	" その単語がcwordの中で何文字目から始まるか
 	let l:wordStartPosInCWord = l:wordPos - l:cwordPos
 
-	let l:checkWordsList = s:camelCaseToWords(a:cword, 1)
+	let l:checkWordsList = s:camelCaseToWords([a:cword])
 	let l:lastWordLength = 0
 	for w in l:checkWordsList
 		if l:colPosInCWord <= strlen(w) + l:lastWordLength
@@ -372,12 +373,28 @@ function! SpellCheck()
 	let l:matchList = []
 
 	" バッファ全て取得
-	let l:windowText = join(getline(0,'$'), "")
+	let l:windowText = join(getline(0,'$'), " ")
 
-	" キャメルケースを単語ごとに分割
-	let l:windowText = s:camelCaseToWords(l:windowText, 0)
+	" キャメルケースを全てリスト化
+	let l:camelCaseWordList = []
+	while 1
+		" キャメルケースとパスカルケースの抜き出し
+		let l:matchCamelCaseWord = matchstr(l:windowText, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
+		if l:matchCamelCaseWord == ""
+			break
+		endif
 
-	let l:spellBadList = s:findSpellBadList(l:windowText)
+		call add(l:camelCaseWordList, l:matchCamelCaseWord)
+		let l:windowText = s:cutTextWordBefore(l:windowText, l:matchCamelCaseWord)
+
+		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
+		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
+		execute ":silent spellgood! " . l:matchCamelCaseWord
+	endwhile
+	
+	let l:wordList = s:camelCaseToWords(l:camelCaseWordList)
+
+	let l:spellBadList = s:findSpellBadList(l:wordList)
 
 	for m in l:spellBadList
 		" 既存のSpellBadグループに突っ込む
@@ -386,6 +403,17 @@ function! SpellCheck()
 		endif 
 	endfor
 endfunction
+
+function! s:cutTextWordBefore (text, word)
+	let l:foundPos = stridx(a:text, a:word)
+
+	if l:foundPos < 0
+		return a:text
+	endif
+
+	let l:wordLength = len(a:word)
+	return strpart(a:text, l:foundPos + l:wordLength)
+endfunc
 
 autocmd BufReadPost * call SpellCheck()
 autocmd BufWritePre * call SpellCheck()
@@ -902,6 +930,9 @@ set spelllang+=en,cjk
 
 " 全体対象にスペルチェック
 " syntax spell toplevel
+syntax spell notoplevel
+" syn match SpellMaybeCode "\v[A-Za-z]+" contains=@NoSpell
+" syntax cluster Spell add=SpellMaybeCode
 
 hi clear SpellBad
 hi SpellBad cterm=underline
