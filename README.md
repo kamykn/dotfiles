@@ -11,10 +11,7 @@ $ ln -s ~/.vimrc ~/dotfiles/.vimrc
 ```
 その後Vimを実行して、各種プラグインがインストールされるのを待つ。
 
-## インデントプラグインとステータスバープラグインの色について
-256色表示設定しないと、表現色が少なく、キレイに表示されない。
-
-### iTerm
+### iTermを使う場合
 preferences->Profiles->Terminal->Report Terminal Typeをxterm-256colorに
 
 ### tmux
@@ -56,12 +53,9 @@ $ git config --global merge.tool vimdiff
 $ git config --global mergetool.prompt false
 ```
 
-# Gitにコミットする用意
+# 自分用
 ```
 git remote add origin git@github.com:kmszk/dotfiles.git
 ```
-## TODO
-git alias 設定
-https://git-scm.com/book/tr/v2/Git-Basics-Git-Aliases
 
 
