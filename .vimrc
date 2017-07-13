@@ -204,6 +204,15 @@ endfunction
 "------------------------------------------------------
 " CamelCase Spell Checker 
 "------------------------------------------------------
+"
+" TODO 
+" zgコマンドなどの時の実行
+" spell修正して保存する際に、下線が消えないことがある?
+" 実行が重くなったっぽい?処理時間を計測する
+" SpellBadのハイライトじゃなくてCCSpellBadを用意
+
+autocmd BufReadPost * call SpellCheck()
+autocmd BufWritePre * call SpellCheck()
 
 function! s:findSpellBadList(wordList) 
 	let l:spellBadList = []
@@ -255,7 +264,7 @@ function! s:camelCaseToWords(camelCaseWordList)
 	return l:wordsList
 endfunction
 
-function! s:searchCurrentCamelCaseWord(lineStr, cword, currentColPos)
+function! s:searchCurrentWordOnCamelCase(lineStr, cword, currentColPos)
 	" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
 	let [l:wordPos, l:cwordPos] = s:getCamelCaseWordPos(a:lineStr, a:cword, a:currentColPos)
 
@@ -312,7 +321,7 @@ endfunction
 
 function! OpenSpellFixList()
 	let l:cword = expand("<cword>")
-	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentCamelCaseWord(getline('.'), l:cword, col('.'))
+	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentWordOnCamelCase(getline('.'), l:cword, col('.'))
 
 	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
 	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
@@ -414,10 +423,6 @@ function! s:cutTextWordBefore (text, word)
 	let l:wordLength = len(a:word)
 	return strpart(a:text, l:foundPos + l:wordLength)
 endfunc
-
-autocmd BufReadPost * call SpellCheck()
-autocmd BufWritePre * call SpellCheck()
-
 
 
 
