@@ -200,230 +200,36 @@ function! s:qf_sink(line)
 	execute 'tabe ' . parts[0]
 endfunction
 
-
 "------------------------------------------------------
 " CamelCase Spell Checker 
 "------------------------------------------------------
 "
 " TODO 
-" zgコマンドなどの時の実行
-" spell修正して保存する際に、下線が消えないことがある?
-" 実行が重くなったっぽい?処理時間を計測する
-" SpellBadのハイライトじゃなくてCCSpellBadを用意
+" [x] spell修正して保存する際に、下線が消えないことがある?
+" [] insertモードの補完(めんどくさいので今回はパス)
+" [x] やっぱりspellgoodが遅い件
+" [] matchaddposで書き直す(Spelと書き間違えるとspellも誤爆する。)
+"
 
-autocmd BufReadPost * call SpellCheck()
-autocmd BufWritePre * call SpellCheck()
 
-function! s:findSpellBadList(wordList) 
-	let l:spellBadList = []
-	let l:currentPos = 0
+let g:CCSpellBadReadLineNum = 50
 
-	for w in a:wordList
-		if strlen(w) < 1
-			continue
-		endif
+" 実行タイミング設定
+" autocmd BufReadPost * call CCSpellCheck()
+" autocmd BufWritePre * call CCSpellCheck()
+" autocmd InsertLeave * call CCSpellCheck()
+" autocmd CursorMoved * call CCSpellCheck()
 
-		let [l:spellBadWord, l:errorType] = spellbadword(w)
-		if empty(l:spellBadWord)
-			continue
-		endif
+" 既存コマンドのオーバーライド
+nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zug :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zG  :execute "spellgood!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zuG :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 
-		let l:wordLength = len(l:spellBadWord)
-
-		" すでに見つかっているspellBadWordの場合スルー
-		if match(l:spellBadList, l:spellBadWord) >= 0
-			continue
-		endif
-
-		" 特定文字数以上のみ検出
-		if l:wordLength > 3
-			call add(l:spellBadList, l:spellBadWord)
-		endif
-	endfor
-
-	return l:spellBadList
-endfunction
-
-" キャメルケースを単語ごとに分割
-function! s:camelCaseToWords(camelCaseWordList)
-	let l:splitBy = ' '
-	let l:wordsList = []
-
-	for c in a:camelCaseWordList
-		let l:splittedWord = split(substitute(c, '\v([A-Z][a-z]*)\C', l:splitBy . "\\1", "g"), l:splitBy)
-
-		for s in l:splittedWord
-			if match(l:wordsList, s) >= 0
-				continue
-			endif
-
-			call add(l:wordsList, s)
-		endfor
-	endfor
-
-	return l:wordsList
-endfunction
-
-function! s:searchCurrentWordOnCamelCase(lineStr, cword, currentColPos)
-	" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
-	let [l:wordPos, l:cwordPos] = s:getCamelCaseWordPos(a:lineStr, a:cword, a:currentColPos)
-
-	" 現在のカーソル位置がcwordの中で何文字目か
-	let l:colPosInCWord = a:currentColPos - l:wordPos 
-	" その単語がcwordの中で何文字目から始まるか
-	let l:wordStartPosInCWord = l:wordPos - l:cwordPos
-
-	let l:checkWordsList = s:camelCaseToWords([a:cword])
-	let l:lastWordLength = 0
-	for w in l:checkWordsList
-		if l:colPosInCWord <= strlen(w) + l:lastWordLength
-			let [l:wordPos, l:tmp] = s:getCamelCaseWordPos(a:cword, w, l:colPosInCWord)
-			return [w, l:colPosInCWord, l:wordPos]
-		endif
-		let l:lastWordLength += strlen(w)
-	endfor
-
-	return [get(l:checkWordsList, 0, a:cword), 0, 0]
-endfunction
-
-" 単語の末尾よりもカーソルが左だった場合、currentColPos-wordIndexが単語内の何番目にカーソルがあったかが分かる
-" return [キャメルケース上のカーソルがある単語の開始位置, cword全体の開始位置]
-function! s:getCamelCaseWordPos(lineStr, cword, currentColPos) 
-	let l:wordIndexList = s:findWordIndexList(a:lineStr, a:cword)
-
-	for i in l:wordIndexList
-		if i <= a:currentColPos && a:currentColPos <= i + strlen(a:cword)
-			return [i, get(l:wordIndexList, 0, 0)]
-		endif
-	endfor
-	
-	return [0, 0]
-endfunction
-
-" 単語のポジションリストを返して、ポジションスタート + 単語長の中にcurposがあればそこが現在位置
-function! s:findWordIndexList(lineStr, cword)
-	let l:cwordLength = strlen(a:cword)
-	let l:findWordIndexList = []
-
-	let l:lineStr = a:lineStr
-	while 1
-		let l:tmpCwordPos = stridx(l:lineStr, a:cword)
-		if l:tmpCwordPos < 0
-			break
-		endif
-
-		call add(l:findWordIndexList, l:tmpCwordPos)
-		let l:lineStr = strpart(l:lineStr, l:tmpCwordPos + l:cwordLength)
-	endwhile
-
-	return l:findWordIndexList
-endfunction
-
-function! OpenSpellFixList()
-	let l:cword = expand("<cword>")
-	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentWordOnCamelCase(getline('.'), l:cword, col('.'))
-
-	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
-	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
-
-	let l:selected = inputlist(l:spellSuggestListForInputList)
-	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
-
-	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
-	let l:replace .= l:selectedWord
-	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
-
-	" 書き換えてカーソルポジションを直す
-	execute "normal ciw" . l:replace
-	execute ":normal b" . l:colPosInCWord . "l"
-endfunction
-
-function! s:getSpellSuggestList(spellSuggestList, currentCamelCaseWord, cword) 
-	" 変換候補選択用リスト
-	let l:spellSuggestListForInputList = []
-	" 変換候補リプレイス用リスト
-	let l:spellSuggestListForReplace = []
-
-	let l:selectIndexStrlen = strlen(len(a:spellSuggestList))
-
-	let i = 1
-	for s in a:spellSuggestList
-		let l:indexStr = printf("%" . l:selectIndexStrlen . "d", i) . ': '
-
-		" 記号削除
-		let s = substitute(s, '\.', " ", "g")
-
-		" 2単語の場合連結
-		if stridx(s, ' ') > 0
-			let s = substitute(s, '\s', ' ', 'g')
-			let l:suggestWords = split(s, ' ')
-			let s = ''
-			for w in l:suggestWords
-				let s = s . toupper(w[0]) . w[1:-1]
-			endfor
-		endif
-
-		" 先頭大文字小文字
-		if stridx(a:cword, a:currentCamelCaseWord) == 0
-			let s = tolower(s[0]) . s[1:-1]
-		else 
-			let s = toupper(s[0]) . s[1:-1]
-		endif
-
-		call add(l:spellSuggestListForReplace, s)
-		call add(l:spellSuggestListForInputList, l:indexStr . '"' . s . '"')
-		let i += 1
-	endfor
-
-	return [l:spellSuggestListForInputList, l:spellSuggestListForReplace]
-endfunction
-
-function! SpellCheck()
-	let l:matchList = []
-
-	" バッファ全て取得
-	let l:windowText = join(getline(0,'$'), " ")
-
-	" キャメルケースを全てリスト化
-	let l:camelCaseWordList = []
-	while 1
-		" キャメルケースとパスカルケースの抜き出し
-		let l:matchCamelCaseWord = matchstr(l:windowText, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
-		if l:matchCamelCaseWord == ""
-			break
-		endif
-
-		call add(l:camelCaseWordList, l:matchCamelCaseWord)
-		let l:windowText = s:cutTextWordBefore(l:windowText, l:matchCamelCaseWord)
-
-		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
-		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
-		execute ":silent spellgood! " . l:matchCamelCaseWord
-	endwhile
-	
-	let l:wordList = s:camelCaseToWords(l:camelCaseWordList)
-
-	let l:spellBadList = s:findSpellBadList(l:wordList)
-
-	for m in l:spellBadList
-		" 既存のSpellBadグループに突っ込む
-		if strlen(m) > 3 
-			call add(l:matchList, matchadd('SpellBad', '\zs' . expand(m) . '\ze\C'))
-		endif 
-	endfor
-endfunction
-
-function! s:cutTextWordBefore (text, word)
-	let l:foundPos = stridx(a:text, a:word)
-
-	if l:foundPos < 0
-		return a:text
-	endif
-
-	let l:wordLength = len(a:word)
-	return strpart(a:text, l:foundPos + l:wordLength)
-endfunc
-
+nmap zw  :execute "spellwrong  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zuw :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zW  :execute "spellwrong! ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+nmap zuW :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 
 
 "------------------------------------------------------
@@ -942,6 +748,9 @@ syntax spell notoplevel
 hi clear SpellBad
 hi SpellBad cterm=underline
 
+hi clear CCSpellBad
+hi CCSpellBad cterm=underline
+
 set completeopt+=noselect,noinsert
 
 " [memo]
@@ -954,4 +763,10 @@ set completeopt+=noselect,noinsert
 " 関数のアウトラインもunite-outlineではなくtagbarへ
 " 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
 " 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。
+
+" [便利コマンド]
+"
+" tag検索->ファイルオープン(XXXっていうクラスがさーって言われたら検索する用)
+" tag [検索したい名前]
+" (FazzyFinderで探したい)
 
