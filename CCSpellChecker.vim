@@ -188,7 +188,7 @@ function! CCSpellCheck()
 	let l:currentLine = line('.')
 
 	if abs(l:currentLine) < g:CCSpellBadReadLineNum 
-		let l:startLine = 0
+		let l:startLine = 1
 		let l:endLine = g:CCSpellBadReadLineNum * 2
 	elseif g:CCSpellBadReadLineNum + line('.') > line('$')
 		let l:startLine = l:currentLine - (g:CCSpellBadReadLineNum * 2)
@@ -198,76 +198,79 @@ function! CCSpellCheck()
 		let l:endLine = l:currentLine + g:CCSpellBadReadLineNum
 	endif
 
-	echo  l:startLine . ':' .  l:endLine
+	let l:windowTextList = getline(l:startLine, l:endLine)
 
-	let l:windowText = getline(l:startLine, l:endLine)
-	let l:windowText = join(l:windowText, " ")
+	let l:windowText = join(l:windowTextList, " ")
 
-	" キャメルケースを全てリスト化
-	let l:camelCaseWordList = []
-	let l:bulkOutputCamelCaseWordList = []
-
-	while 1
-		" キャメルケースとパスカルケースの抜き出し
-		let l:matchCamelCaseWord = matchstr(l:windowText, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
-		if l:matchCamelCaseWord == ""
-			break
-		endif
-
-		call add(l:camelCaseWordList, l:matchCamelCaseWord)
-		let l:windowText = s:cutTextWordBefore(l:windowText, l:matchCamelCaseWord)
-
-		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
-		" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
-		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
-		if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
-			let l:execOutput = execute(":silent spellgood! " . l:matchCamelCaseWord . '<CR><CR>')
-		
-			call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
-		endif
-	endwhile
-
-	let l:wordList = s:camelCaseToWords(l:camelCaseWordList)
-	let l:spellBadList = s:findSpellBadList(l:wordList)
-
-	if !exists('b:currentMatchedDict')
-		let b:currentMatchedDict = {}
+	if !exists('b:lineAndMatchIDDict')
+		let b:lineAndMatchIDDict = {}
 	endif
 
-	let l:spellDictForDelete = deepcopy(b:currentMatchedDict)
-	let l:currentMatchedSpellList = values(b:currentMatchedDict)
+	let l:lineListForDelete = keys(b:lineAndMatchIDDict)
 
-	for s in l:spellBadList
-		if strlen(s) > 3 
-			let l:lowerSpellBad = tolower(s)
+	let l:currentLine = l:startLine
+	for w in l:windowTextList
 
-			if match(l:currentMatchedSpellList, l:lowerSpellBad) == -1
-				let l:upperMatchID = matchadd('CCSpellBad', '\zs' . l:lowerSpellBad . '\ze\c')
-				execute "let b:currentMatchedDict." . l:upperMatchID . " = '" . l:lowerSpellBad . "'"
-			else
-				let l:spellDictForDelete = s:deleteFromSpellDict(l:spellDictForDelete, l:lowerSpellBad)
+		let l:foundLineKey = match(l:lineListForDelete, l:currentLine)
+
+		" すでに処理済みの行ならば
+		if l:foundLineKey != -1
+			call remove(l:lineListForDelete, l:foundLineKey)
+			let l:currentLine += 1
+			continue
+		endif
+
+		let l:spellBadPos = []
+		let l:lineForFindCamelCase = w
+		while 1
+			" キャメルケースとパスカルケースの抜き出し
+			let l:matchCamelCaseWord = matchstr(l:lineForFindCamelCase, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
+			if l:matchCamelCaseWord == ""
+				break
 			endif
-		endif 
+
+			let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
+
+			" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
+			" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
+			" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
+			if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
+				let l:execOutput = execute(":silent spellgood! " . l:matchCamelCaseWord . '<CR><CR>')
+			
+				call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
+			endif
+
+			let l:wordList = s:camelCaseToWords([l:matchCamelCaseWord])
+			let l:spellBadList = s:findSpellBadList(l:wordList)
+
+			for s in l:spellBadList
+				if strlen(s) > 3 
+					let l:startSpellBadPos = stridx(w, s)
+					if l:startSpellBadPos != -1
+						call add(l:spellBadPos, [l:currentLine, l:startSpellBadPos + 1, strlen(s)])
+					endif
+				endif 
+			endfor
+
+			" matchaddposの仕様で8箇所までしか指定できない
+			if len(l:spellBadPos) >= 8
+				break
+			endif
+		endwhile
+
+		let l:matchID = matchaddpos('CCSpellBad', l:spellBadPos)
+		execute 'let b:lineAndMatchIDDict.' . l:currentLine . ' = ' . l:matchID
+
+		let l:currentLine += 1
 	endfor
 
-	for k in keys(l:spellDictForDelete)
-		call matchdelete(k)
-		call remove(b:currentMatchedDict, k)
-	endfor
-endfunction
-
-function s:deleteFromSpellDict (spellDictForDelete, search)
-	let l:spellDictForDelete = a:spellDictForDelete
-
-	for k in keys(l:spellDictForDelete)
-		let l:spellForFind = get(l:spellDictForDelete, k)
-		if l:spellForFind == a:search
-			call remove(l:spellDictForDelete, k)
-			break
+	for l in l:lineListForDelete
+		let l:deleteMatchID = get(b:lineAndMatchIDDict, l, 0)
+		if l:deleteMatchID > 0
+			call matchdelete(l:deleteMatchID)
+			call remove(b:lineAndMatchIDDict, l)
 		endif
 	endfor
-
-	return l:spellDictForDelete
 endfunction
 
 function! s:cutTextWordBefore (text, word)
