@@ -124,25 +124,6 @@ function! s:findWordIndexList(lineStr, cword)
 	return l:findWordIndexList
 endfunction
 
-function! OpenSpellFixList()
-	let l:cword = expand("<cword>")
-	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentWordOnCamelCase(getline('.'), l:cword, col('.'))
-
-	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
-	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
-
-	let l:selected = inputlist(l:spellSuggestListForInputList)
-	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
-
-	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
-	let l:replace .= l:selectedWord
-	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
-
-	" 書き換えてカーソルポジションを直す
-	execute "normal ciw" . l:replace
-	execute "normal b" . l:colPosInCWord . "l"
-endfunction
-
 function! s:getSpellSuggestList(spellSuggestList, currentCamelCaseWord, cword) 
 	" 変換候補選択用リスト
 	let l:spellSuggestListForInputList = []
@@ -183,94 +164,65 @@ function! s:getSpellSuggestList(spellSuggestList, currentCamelCaseWord, cword)
 	return [l:spellSuggestListForInputList, l:spellSuggestListForReplace]
 endfunction
 
-function! CCSpellCheck()
-	" バッファ取得
+function! s:getWindowTextList()
 	let l:currentLine = line('.')
+	let l:currentWindowToatlLines = winheight(0)
+	let l:currentWindowLine = winline()
 
-	if abs(l:currentLine) < g:CCSpellBadReadLineNum 
+	let l:startLine = l:currentLine - l:currentWindowLine + 1
+	let l:endLine = l:currentLine + (l:currentWindowToatlLines - l:currentWindowLine)
+
+	if l:startLine < 1 
 		let l:startLine = 1
-		let l:endLine = g:CCSpellBadReadLineNum * 2
-	elseif g:CCSpellBadReadLineNum + line('.') > line('$')
-		let l:startLine = l:currentLine - (g:CCSpellBadReadLineNum * 2)
+	endif
+	
+	if l:endLine > line('$')
 		let l:endLine = '$'
-	else 
-		let l:startLine = l:currentLine - g:CCSpellBadReadLineNum
-		let l:endLine = l:currentLine + g:CCSpellBadReadLineNum
 	endif
 
-	let l:windowTextList = getline(l:startLine, l:endLine)
+	return [getline(l:startLine, l:endLine), l:startLine]
+endfunc
 
-	let l:windowText = join(l:windowTextList, " ")
-
-	if !exists('b:lineAndMatchIDDict')
-		let b:lineAndMatchIDDict = {}
-	endif
-
-	let l:lineListForDelete = keys(b:lineAndMatchIDDict)
-
-	let l:currentLine = l:startLine
-	for w in l:windowTextList
-
-		let l:foundLineKey = match(l:lineListForDelete, l:currentLine)
-
-		" すでに処理済みの行ならば
-		if l:foundLineKey != -1
-			call remove(l:lineListForDelete, l:foundLineKey)
-			let l:currentLine += 1
-			continue
+function! s:getSpellBadPos(text, currentLineNum)
+	let l:spellBadPos = []
+	let l:lineForFindCamelCase = a:text
+	while 1
+		" キャメルケースとパスカルケースの抜き出し
+		let l:matchCamelCaseWord = matchstr(l:lineForFindCamelCase, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
+		if l:matchCamelCaseWord == ""
+			break
 		endif
 
-		let l:spellBadPos = []
-		let l:lineForFindCamelCase = w
-		while 1
-			" キャメルケースとパスカルケースの抜き出し
-			let l:matchCamelCaseWord = matchstr(l:lineForFindCamelCase, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
-			if l:matchCamelCaseWord == ""
-				break
-			endif
+		let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
 
-			let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
+		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
+		" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
+		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
+		if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
+			let l:execOutput = execute(":silent spellgood! " . l:matchCamelCaseWord . '<CR><CR>')
 
-			" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
-			" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
-			" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
-			if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
-				let l:execOutput = execute(":silent spellgood! " . l:matchCamelCaseWord . '<CR><CR>')
-			
-				call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
-			endif
-
-			let l:wordList = s:camelCaseToWords([l:matchCamelCaseWord])
-			let l:spellBadList = s:findSpellBadList(l:wordList)
-
-			for s in l:spellBadList
-				if strlen(s) > 3 
-					let l:startSpellBadPos = stridx(w, s)
-					if l:startSpellBadPos != -1
-						call add(l:spellBadPos, [l:currentLine, l:startSpellBadPos + 1, strlen(s)])
-					endif
-				endif 
-			endfor
-
-			" matchaddposの仕様で8箇所までしか指定できない
-			if len(l:spellBadPos) >= 8
-				break
-			endif
-		endwhile
-
-		let l:matchID = matchaddpos('CCSpellBad', l:spellBadPos)
-		execute 'let b:lineAndMatchIDDict.' . l:currentLine . ' = ' . l:matchID
-
-		let l:currentLine += 1
-	endfor
-
-	for l in l:lineListForDelete
-		let l:deleteMatchID = get(b:lineAndMatchIDDict, l, 0)
-		if l:deleteMatchID > 0
-			call matchdelete(l:deleteMatchID)
-			call remove(b:lineAndMatchIDDict, l)
+			call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
 		endif
-	endfor
+
+		let l:wordList = s:camelCaseToWords([l:matchCamelCaseWord])
+		let l:spellBadList = s:findSpellBadList(l:wordList)
+
+		for s in l:spellBadList
+			if strlen(s) > 3 
+				let l:startSpellBadPos = stridx(a:text, s)
+				if l:startSpellBadPos != -1
+					call add(l:spellBadPos, [a:currentLineNum, l:startSpellBadPos + 1, strlen(s)])
+				endif
+			endif 
+		endfor
+
+		" matchaddposの仕様で8箇所までしか指定できない
+		if len(l:spellBadPos) >= 8
+			break
+		endif
+	endwhile
+
+	return spellBadPos
 endfunction
 
 function! s:cutTextWordBefore (text, word)
@@ -284,6 +236,60 @@ function! s:cutTextWordBefore (text, word)
 	return strpart(a:text, l:foundPos + l:wordLength)
 endfunc
 
+function! CCSpellCheck()
+	" バッファ取得
+	let [l:windowTextList, l:startLine] = s:getWindowTextList()
+
+	if !exists('b:lineAndMatchIDDict')
+		let b:lineAndMatchIDDict = {}
+	endif
+
+	let l:lineListForDelete = keys(b:lineAndMatchIDDict)
+
+	let l:currentLine = l:startLine
+	for w in l:windowTextList
+
+		let l:foundLineKey = match(l:lineListForDelete, l:currentLine)
+
+		if l:foundLineKey != -1
+			" すでに処理済みの行
+			call remove(l:lineListForDelete, l:foundLineKey)
+		else
+			let l:spellBadPos = s:getSpellBadPos(w, l:currentLine)
+			let l:matchID = matchaddpos('CCSpellBad', l:spellBadPos)
+			execute 'let b:lineAndMatchIDDict.' . l:currentLine . ' = ' . l:matchID
+		endif
+
+		let l:currentLine += 1
+	endfor
+
+	for l in l:lineListForDelete
+		let l:deleteMatchID = get(b:lineAndMatchIDDict, l, 0)
+		if l:deleteMatchID > 0
+			call matchdelete(l:deleteMatchID)
+			call remove(b:lineAndMatchIDDict, l)
+		endif
+	endfor
+endfunction
+
+function! OpenSpellFixList()
+	let l:cword = expand("<cword>")
+	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentWordOnCamelCase(getline('.'), l:cword, col('.'))
+
+	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
+	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
+
+	let l:selected = inputlist(l:spellSuggestListForInputList)
+	let l:selectedWord = l:spellSuggestListForReplace[l:selected - 1]
+
+	let l:replace = strpart(l:cword, 0, l:wordStartPosInCWord) 
+	let l:replace .= l:selectedWord
+	let l:replace .= strpart(l:cword, l:wordStartPosInCWord + strlen(l:currentCamelCaseWord), strlen(l:cword))
+
+	" 書き換えてカーソルポジションを直す
+	execute "normal ciw" . l:replace
+	execute "normal b" . l:colPosInCWord . "l"
+endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

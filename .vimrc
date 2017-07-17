@@ -205,20 +205,17 @@ endfunction
 "------------------------------------------------------
 "
 " TODO 
-" [x] spell修正して保存する際に、下線が消えないことがある?
 " [] insertモードの補完(めんどくさいので今回はパス)
-" [x] やっぱりspellgoodが遅い件
-" [] matchaddposで書き直す(Spelと書き間違えるとspellも誤爆する。)
-"
+" [] カーソル右に動いたときも発火してる？
+" [] 毎回ウインドウサイズの計算が走ってる
 
-
-let g:CCSpellBadReadLineNum = 50
 
 " 実行タイミング設定
 " autocmd BufReadPost * call CCSpellCheck()
 " autocmd BufWritePre * call CCSpellCheck()
 " autocmd InsertLeave * call CCSpellCheck()
 " autocmd CursorMoved * call CCSpellCheck()
+" autocmd VimResized  * call CCSpellCheck()
 
 " 既存コマンドのオーバーライド
 nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
