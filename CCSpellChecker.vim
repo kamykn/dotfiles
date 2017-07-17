@@ -23,8 +23,12 @@ functio! s:findSpellBadList(wordList)
 	let l:spellBadList = []
 	let l:currentPos = 0
 
+	if !exists('g:CCSpellCheckMinWordLength')
+		let g:CCSpellCheckMinWordLength = 4
+	endif
+
 	for w in a:wordList
-		if strlen(w) < 1
+		if strlen(w) <= 1
 			continue
 		endif
 
@@ -41,7 +45,7 @@ functio! s:findSpellBadList(wordList)
 		endif
 
 		" 特定文字数以上のみ検出
-		if l:wordLength > 3
+		if l:wordLength >= g:CCSpellCheckMinWordLength
 			call add(l:spellBadList, l:spellBadWord)
 		endif
 	endfor
@@ -186,6 +190,7 @@ endfunc
 function! s:getSpellBadPos(text, currentLineNum)
 	let l:spellBadPos = []
 	let l:lineForFindCamelCase = a:text
+
 	while 1
 		" キャメルケースとパスカルケースの抜き出し
 		let l:matchCamelCaseWord = matchstr(l:lineForFindCamelCase, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
@@ -193,20 +198,19 @@ function! s:getSpellBadPos(text, currentLineNum)
 			break
 		endif
 
-		let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
-
 		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
 		" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
 		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
 		if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
-			let l:execOutput = execute(":silent spellgood! " . l:matchCamelCaseWord . '<CR><CR>')
-
+			call execute(":silent spellgood! " . l:matchCamelCaseWord)
 			call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
 		endif
 
+		let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
+
 		let l:wordList = s:camelCaseToWords([l:matchCamelCaseWord])
 		let l:spellBadList = s:findSpellBadList(l:wordList)
-
+" echo l:spellBadList
 		for s in l:spellBadList
 			if strlen(s) > 3 
 				let l:startSpellBadPos = stridx(a:text, s)
@@ -222,7 +226,7 @@ function! s:getSpellBadPos(text, currentLineNum)
 		endif
 	endwhile
 
-	return spellBadPos
+	return l:spellBadPos
 endfunction
 
 function! s:cutTextWordBefore (text, word)
@@ -237,6 +241,25 @@ function! s:cutTextWordBefore (text, word)
 endfunc
 
 function! CCSpellCheck()
+	if &readonly
+		return
+	endif
+
+	" for enable spellbadword() function.
+	setlocal spell
+
+	let l:currentLine = line('.')
+
+	if exists('b:currentLine')
+		if b:currentLine == l:currentLine
+			return
+		endif
+	endif
+
+echo 'DEBUG: process'
+
+	let b:currentLine = l:currentLine
+
 	" バッファ取得
 	let [l:windowTextList, l:startLine] = s:getWindowTextList()
 
@@ -272,11 +295,23 @@ function! CCSpellCheck()
 	endfor
 endfunction
 
-function! OpenSpellFixList()
+function! OpenCCSpellFixList()
 	let l:cword = expand("<cword>")
+
+	if match(l:cword, '\v[A-Za-z]')
+		echo "It does not match [A-Za-z]."
+		return
+	endif
+
 	let [l:currentCamelCaseWord, l:colPosInCWord, l:wordStartPosInCWord] = s:searchCurrentWordOnCamelCase(getline('.'), l:cword, col('.'))
 
 	let l:spellSuggestList = spellsuggest(l:currentCamelCaseWord, 50)
+
+	if len(l:spellSuggestList) == 0
+		echo "No suggested words."
+		return
+	endif
+
 	let [l:spellSuggestListForInputList, l:spellSuggestListForReplace] = s:getSpellSuggestList(l:spellSuggestList, l:currentCamelCaseWord, l:cword)
 
 	let l:selected = inputlist(l:spellSuggestListForInputList)

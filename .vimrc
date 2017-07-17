@@ -205,17 +205,16 @@ endfunction
 "------------------------------------------------------
 "
 " TODO 
-" [] insertモードの補完(めんどくさいので今回はパス)
 " [] カーソル右に動いたときも発火してる？
 " [] 毎回ウインドウサイズの計算が走ってる
 
 
 " 実行タイミング設定
-" autocmd BufReadPost * call CCSpellCheck()
-" autocmd BufWritePre * call CCSpellCheck()
-" autocmd InsertLeave * call CCSpellCheck()
-" autocmd CursorMoved * call CCSpellCheck()
-" autocmd VimResized  * call CCSpellCheck()
+autocmd BufWinEnter * call CCSpellCheck()
+autocmd BufWritePost * call CCSpellCheck()
+autocmd InsertLeave * call CCSpellCheck()
+autocmd CursorMoved * call CCSpellCheck()
+autocmd VimResized  * call CCSpellCheck()
 
 " 既存コマンドのオーバーライド
 nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
@@ -228,6 +227,7 @@ nmap zuw :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCh
 nmap zW  :execute "spellwrong! ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 nmap zuW :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 
+nmap zc  :call OpenCCSpellFixList()<CR>
 
 "------------------------------------------------------
 " Plugin 
@@ -263,7 +263,7 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 "----------------------------------------------------
 " shell とかの if-endif とか閉じてくれる
 
-" NeoBundle 'tpope/vim-endwise'
+NeoBundle 'tpope/vim-endwise'
 
 
 "----------------------------------------------------
@@ -734,19 +734,14 @@ filetype plugin indent on
 
 " スペルチェック
 set spell
-set spelllang+=en,cjk
+set spelllang=en,cjk
 
 " 全体対象にスペルチェック
-" syntax spell toplevel
-syntax spell notoplevel
-" syn match SpellMaybeCode "\v[A-Za-z]+" contains=@NoSpell
-" syntax cluster Spell add=SpellMaybeCode
+syntax spell toplevel
+" syntax spell notoplevel
 
 hi clear SpellBad
 hi SpellBad cterm=underline
-
-hi clear CCSpellBad
-hi CCSpellBad cterm=underline
 
 set completeopt+=noselect,noinsert
 
