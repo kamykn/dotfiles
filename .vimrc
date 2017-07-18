@@ -205,29 +205,30 @@ endfunction
 "------------------------------------------------------
 "
 " TODO 
-" [] カーソル右に動いたときも発火してる？
+" [x] カーソル右に動いたときも発火してる？
 " [] 毎回ウインドウサイズの計算が走ってる
 
-
 " 実行タイミング設定
-autocmd BufWinEnter * call CCSpellCheck()
-autocmd BufWritePost * call CCSpellCheck()
-autocmd InsertLeave * call CCSpellCheck()
-autocmd CursorMoved * call CCSpellCheck()
-autocmd VimResized  * call CCSpellCheck()
+if exists('CCSpellCheck')
+	autocmd BufWinEnter  * call CCSpellCheck()
+	autocmd BufWritePost * call CCSpellCheck()
+	autocmd InsertLeave  * call CCSpellCheck()
+	autocmd CursorMoved  * call CCSpellCheck()
+	autocmd VimResized   * call CCSpellCheck()
 
-" 既存コマンドのオーバーライド
-nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zug :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zG  :execute "spellgood!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zuG :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	" 既存コマンドのオーバーライド
+	nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zug :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zG  :execute "spellgood!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zuG :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 
-nmap zw  :execute "spellwrong  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zuw :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zW  :execute "spellwrong! ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-nmap zuW :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zw  :execute "spellwrong  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zuw :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zW  :execute "spellwrong! ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	nmap zuW :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
 
-nmap zc  :call OpenCCSpellFixList()<CR>
+	nmap zc  :call OpenCCSpellFixList()<CR>
+endif
 
 "------------------------------------------------------
 " Plugin 
