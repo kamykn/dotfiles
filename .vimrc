@@ -205,30 +205,36 @@ endfunction
 "------------------------------------------------------
 "
 " TODO 
-" [x] カーソル右に動いたときも発火してる？
-" [] 毎回ウインドウサイズの計算が走ってる
+" addmatchで誤爆しないように調整する
 
 " 実行タイミング設定
 if exists('CCSpellCheck')
+	call Ccsp()
+endif
+
+:command! CCSP call Ccsp()
+
+function! Ccsp()
 	autocmd BufWinEnter  * call CCSpellCheck()
 	autocmd BufWritePost * call CCSpellCheck()
-	autocmd InsertLeave  * call CCSpellCheck()
-	autocmd CursorMoved  * call CCSpellCheck()
-	autocmd VimResized   * call CCSpellCheck()
+	" autocmd InsertLeave  * call CCSpellCheck()
+	" autocmd CursorMoved  * call CCSpellCheck()
+	" autocmd CursorHold   * call CCSpellCheck()
+	" autocmd VimResized   * call CCSpellCheck()
 
 	" 既存コマンドのオーバーライド
-	nmap zg  :execute "spellgood   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zug :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zG  :execute "spellgood!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zuG :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	vmap Zg  zg  <CR> :call CCSpellCheck() <CR>
+	vmap Zug zug <CR> :call CCSpellCheck() <CR>
+	vmap ZG  zG  <CR> :call CCSpellCheck() <CR>
+	vmap ZUG zuG <CR> :call CCSpellCheck() <CR>
 
-	nmap zw  :execute "spellwrong  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zuw :execute "spellundo   ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zW  :execute "spellwrong! ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
-	nmap zuW :execute "spellundo!  ".expand('<cword>') <CR> <silent> :call CCSpellCheck()<CR>
+	vmap Zw  zw  <CR> :call CCSpellCheck() <CR>
+	vmap Zuw zuw <CR> :call CCSpellCheck() <CR>
+	vmap ZW  zW  <CR> :call CCSpellCheck() <CR>
+	vmap ZUW zuW <CR> :call CCSpellCheck() <CR>
 
-	nmap zc  :call OpenCCSpellFixList()<CR>
-endif
+	nmap Zc  :call OpenCCSpellFixList()<CR>
+endfunction
 
 "------------------------------------------------------
 " Plugin 

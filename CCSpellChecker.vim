@@ -3,6 +3,9 @@
 " Author kmszk
 " License VIM LICENSE
 
+" 一つ『実行中」フラグを立てといて、移動して発火しても実行中フラグが立ったらじっこうしない？
+" それか時刻チェック？1秒に1回とか
+
 if exists('g:isCCSpellCheckLoaded')
 	finish
 endif
@@ -168,7 +171,7 @@ function! s:getSpellSuggestList(spellSuggestList, currentCamelCaseWord, cword)
 	return [l:spellSuggestListForInputList, l:spellSuggestListForReplace]
 endfunction
 
-function! s:getWindowTextList()
+function! s:getWindowLineStartAndEnd()
 	let l:currentLine = line('.')
 	let l:currentWindowToatlLines = winheight(0)
 	let l:currentWindowLine = winline()
@@ -184,8 +187,38 @@ function! s:getWindowTextList()
 		let l:endLine = '$'
 	endif
 
-	return [getline(l:startLine, l:endLine), l:startLine]
+	return [l:startLine, l:endLine]
 endfunc
+
+function! s:getSpellBadList(text, ignoreSpellBadList)
+	let l:lineForFindCamelCase = a:text
+	let l:spellBadList = []
+
+	while 1
+		" キャメルケースとパスカルケースの抜き出し
+		let l:matchCamelCaseWord = matchstr(l:lineForFindCamelCase, '\v([A-Za-z]@<!)[A-Za-z]+[A-Z][A-Za-z]+\C')
+		if l:matchCamelCaseWord == ""
+			break
+		endif
+
+		let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
+
+		let l:wordList = s:camelCaseToWords([l:matchCamelCaseWord])
+		let l:foundSpellBadList = s:findSpellBadList(l:wordList)
+
+		if len(l:foundSpellBadList) == 0
+			continue
+		endif
+
+		for s in l:foundSpellBadList
+			if match(a:ignoreSpellBadList, s) == -1  && match(l:spellBadList, s) == -1
+				call add(l:spellBadList, s)
+			endif
+		endfor
+	endwhile
+
+	return l:spellBadList
+endfunction
 
 function! s:getSpellBadPos(text, currentLineNum)
 	let l:spellBadPos = []
@@ -198,13 +231,13 @@ function! s:getSpellBadPos(text, currentLineNum)
 			break
 		endif
 
-		" すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
-		" 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
-		" http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
-		if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
-			call execute(":silent spellgood! " . l:matchCamelCaseWord)
-			call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
-		endif
+		" " すでに検知されているキャメルケースをinternal-wordlistに追加して、(一時的に)無効にする
+		" " 数が多くなるとspellgoodが遅くなる模様、初回に全て突っ込むので遅くなる
+		" " http://vim-jp.org/vimdoc-ja/spell.html#internal-wordlist
+		" if match(g:internalCCSpellGoodList, l:matchCamelCaseWord) == -1
+		" 	call execute(":silent spellgood! " . l:matchCamelCaseWord)
+		" 	call add(g:internalCCSpellGoodList, l:matchCamelCaseWord)
+		" endif
 
 		let l:lineForFindCamelCase = s:cutTextWordBefore(l:lineForFindCamelCase, l:matchCamelCaseWord)
 
@@ -241,56 +274,53 @@ function! s:cutTextWordBefore (text, word)
 endfunc
 
 function! CCSpellCheck()
+
 	if &readonly
 		return
 	endif
 
-	" for enable spellbadword() function.
+	let l:startLine = 1
+	let l:endLine = '$'
+
 	setlocal spell
-
-	let l:currentLine = line('.')
-
-	if exists('b:currentLine')
-		if b:currentLine == l:currentLine
-			return
-		endif
-	endif
-
 echo 'DEBUG: process'
 
-	let b:currentLine = l:currentLine
+	let l:windowTextList = getline(l:startLine, l:endLine)
 
-	" バッファ取得
-	let [l:windowTextList, l:startLine] = s:getWindowTextList()
-
-	if !exists('b:lineAndMatchIDDict')
-		let b:lineAndMatchIDDict = {}
+	if !exists('b:matchIDDict')
+		let b:matchIDDict = {}
 	endif
 
-	let l:lineListForDelete = keys(b:lineAndMatchIDDict)
+	let l:wordListForDelete = keys(b:matchIDDict)
+	let l:ignoreSpellBadList = l:wordListForDelete
 
-	let l:currentLine = l:startLine
 	for w in l:windowTextList
+		let l:spellBadList = s:getSpellBadList(w, l:ignoreSpellBadList)
 
-		let l:foundLineKey = match(l:lineListForDelete, l:currentLine)
+		for s in l:spellBadList
+			if match(l:wordListForDelete, w) == -1
+				let l:matchID = matchadd('CCSpellBad', s)
 
-		if l:foundLineKey != -1
-			" すでに処理済みの行
-			call remove(l:lineListForDelete, l:foundLineKey)
-		else
-			let l:spellBadPos = s:getSpellBadPos(w, l:currentLine)
-			let l:matchID = matchaddpos('CCSpellBad', l:spellBadPos)
-			execute 'let b:lineAndMatchIDDict.' . l:currentLine . ' = ' . l:matchID
-		endif
-
-		let l:currentLine += 1
+				call add(l:ignoreSpellBadList, s)
+				execute 'let b:matchIDDict.' . s . ' = ' . l:matchID
+			else 
+				call remove(l:wordListForDelete, s)
+			endif
+		endfor
 	endfor
 
-	for l in l:lineListForDelete
-		let l:deleteMatchID = get(b:lineAndMatchIDDict, l, 0)
+	for l in l:wordListForDelete
+		let l:deleteMatchID = get(b:matchIDDict, l, 0)
+
 		if l:deleteMatchID > 0
-			call matchdelete(l:deleteMatchID)
-			call remove(b:lineAndMatchIDDict, l)
+			try
+				let l:isMatchDeleteSuccess = (matchdelete(l:deleteMatchID) == 0)
+				if l:isMatchDeleteSuccess
+					call remove(b:matchIDDict, l)
+				endif
+			catch
+				call remove(b:matchIDDict, l)
+			endtry
 		endif
 	endfor
 endfunction
