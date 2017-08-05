@@ -207,20 +207,9 @@ endfunction
 " TODO 
 " addmatchで誤爆しないように調整する
 
-" 実行タイミング設定
-if exists('CCSpellCheck')
-	call Ccsp()
-endif
-
-:command! CCSP call Ccsp()
-
 function! Ccsp()
-	autocmd BufWinEnter  * call CCSpellCheck()
-	autocmd BufWritePost * call CCSpellCheck()
-	" autocmd InsertLeave  * call CCSpellCheck()
-	" autocmd CursorMoved  * call CCSpellCheck()
-	" autocmd CursorHold   * call CCSpellCheck()
-	" autocmd VimResized   * call CCSpellCheck()
+	autocmd BufWinEnter,BufWritePost  * call CCSpellCheck()
+	" InsertLeave, CursorMoved, CursorHold, VimResized 
 
 	" 既存コマンドのオーバーライド
 	vmap Zg  zg  <CR> :call CCSpellCheck() <CR>
@@ -235,6 +224,11 @@ function! Ccsp()
 
 	nmap Zc  :call OpenCCSpellFixList()<CR>
 endfunction
+
+" 実行タイミング設定
+call Ccsp()
+
+:command! CCSP call Ccsp()
 
 "------------------------------------------------------
 " Plugin 
