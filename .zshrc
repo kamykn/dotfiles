@@ -53,7 +53,8 @@ precmd() {
 }
 
 # vcs_info_msg_0_の書式設定
-zstyle ':vcs_info:git:*' check-for-changes true
+# zstyle ':vcs_info:git:*' check-for-changes true
+zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
 zstyle ':vcs_info:*'     formats           "(%F{green}%b%f%c%u) "
@@ -72,7 +73,7 @@ fbr() {
 }
 
 
-# リモートランチ
+# リモートブランチ
 fbrm() {
 	local branches branch
 	branches=$(git branch --all | grep -v HEAD) &&

@@ -1,5 +1,5 @@
 " -----------------------------------------------------
-"                     kmszk .vimrc                    
+"                     kmszk .vimrc
 " -----------------------------------------------------
 "
 "------------------------------------------------------
@@ -8,18 +8,19 @@
 
 colorscheme default
 
+
 " 文字コード設定
-set encoding=utf-8	
+set encoding=utf-8
 set fileencoding=utf-8
 set fileformat=unix
 
 " 雑に打ってもイケるように
 nnoremap ; :
 
-" basic settings 
+" basic settings
 set title
 set nobackup
-set smartindent		
+set smartindent
 set autoindent
 
 " 行番号
@@ -52,7 +53,7 @@ set noswapfile
 set noundofile
 
 " カッコのハイライト1表示、0非表示(効いていないっぽい)
-let loaded_matchparen = 0 
+let loaded_matchparen = 0
 
 " インクリメンタルサーチ 検索中にハイライトされる
 set incsearch
@@ -72,17 +73,32 @@ set virtualedit+=onemore
 " バックスペースの挙動を7.2の時のように戻す
 set backspace=indent,eol,start
 
+" カーソルの上下に確保する表示行
+set so=7
+
+" コマンド履歴
+set history=500
+
 " exモードに入らない
 nnoremap Q <Nop>
+
+" recodingしない
+nnoremap q <Nop>
 
 " 勝手に第一候補を選択して入れない
 set completeopt+=noinsert
 
-" カーソルラインをハイライト
-" set cursorline 
+" ファイル補完をshellに近く
+set wildmode=longest,full
 
-" grep 後に quickfix勝手に開く
-autocmd QuickfixCmdPost grep cope
+" スクロールスピード改善
+set lazyredraw
+
+" 対応カッコ表示
+set showmatch
+
+" カーソルラインをハイライト
+" set cursorline
 
 " ESCキー2度押しでハイライトの切り替え
 nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
@@ -94,11 +110,56 @@ augroup vimrcEx
 augroup END
 
 " MySQLのsyntax highlight
-let g:sql_type_default = 'mysql' 
+let g:sql_type_default = 'mysql'
 
 
 "------------------------------------------------------
-" misc alias 
+" autocmd
+"------------------------------------------------------
+
+" grep 後に quickfix勝手に開く
+autocmd QuickfixCmdPost grep cope
+
+augroup HighlightTrailingSpaces
+  autocmd!
+  autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
+  autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
+augroup END
+
+augroup PHP
+  autocmd!
+  " autocmd FileType php set makeprg=php\ -l\ %
+  " set errorformat=%m\ in\ %f\ on\ line\ %l
+  " php -lの構文チェックでエラーがなければ「No syntax errors」の一行だけ出力される
+  autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | else | cclose | endif
+augroup END
+
+function! PhpLint()
+	let l:result = system('php -l ' . expand("%"))
+	let l:resultList = split(l:result, "\n")
+
+	if (match(l:resultList, 'No syntax errors detected in') != -1)
+		call setqflist([], 'r')
+		return
+	endif
+
+	let l:errors = []
+	for r in l:resultList
+		let info = {'filename': expand("%")}
+		"echo match(r, "\von line ([0-9]+)\C")
+		"echo substitute(match(r, "\von line ([0-9]+)\C"), "([0-9]+)", "\n")
+		" let info.lnum = substitute(match(r, "\von line ([0-9]+)\C", '\1'), "([0-9]+)", "\n")
+		let info.text = r
+		call add(errors, info)
+		break
+	endfor
+
+	call setqflist(l:errors, 'r')
+endfunction
+
+
+"------------------------------------------------------
+" misc alias
 "------------------------------------------------------
 "
 " Vimrcへのショートカット
@@ -117,7 +178,7 @@ vnoremap <silent> <C-p> "0p<CR>
 
 
 "------------------------------------------------------
-" FZF 
+" FZF
 "------------------------------------------------------
 "
 " [初回インストールコマンド]
@@ -141,7 +202,7 @@ nnoremap <C-b> :Fb<CR>
 :command! Fb FZFBuffer
 
 " [MRU] ========================================
-" 
+"
 command! FZFMru call fzf#run({
 			\  'source':  v:oldfiles,
 			\  'sink':    'tabe',
@@ -200,38 +261,9 @@ function! s:qf_sink(line)
 	execute 'tabe ' . parts[0]
 endfunction
 
-"------------------------------------------------------
-" CamelCase Spell Checker 
-"------------------------------------------------------
-"
-" TODO 
-" addmatchで誤爆しないように調整する
-
-function! Ccsp()
-	autocmd BufWinEnter,BufWritePost  * call CCSpellCheck()
-	" InsertLeave, CursorMoved, CursorHold, VimResized 
-
-	" 既存コマンドのオーバーライド
-	vmap Zg  zg  <CR> :call CCSpellCheck() <CR>
-	vmap Zug zug <CR> :call CCSpellCheck() <CR>
-	vmap ZG  zG  <CR> :call CCSpellCheck() <CR>
-	vmap ZUG zuG <CR> :call CCSpellCheck() <CR>
-
-	vmap Zw  zw  <CR> :call CCSpellCheck() <CR>
-	vmap Zuw zuw <CR> :call CCSpellCheck() <CR>
-	vmap ZW  zW  <CR> :call CCSpellCheck() <CR>
-	vmap ZUW zuW <CR> :call CCSpellCheck() <CR>
-
-	nmap Zc  :call OpenCCSpellFixList()<CR>
-endfunction
-
-" 実行タイミング設定
-call Ccsp()
-
-:command! CCSP call Ccsp()
 
 "------------------------------------------------------
-" Plugin 
+" Plugin
 "------------------------------------------------------
 
 "------------------------------------------------------
@@ -247,16 +279,9 @@ call Ccsp()
 " bundleで管理するディレクトリを指定
 set runtimepath+=~/.vim/bundle/neobundle.vim/
 call neobundle#begin(expand('~/.vim/bundle/'))
-  
+
 " neobundle自体をneobundleで管理
 NeoBundleFetch 'Shougo/neobundle.vim'
-
-"----------------------------------------------------
-" cohama/lexima.vim
-"----------------------------------------------------
-" カッコとか閉じてくれる
-
-" NeoBundle 'cohama/lexima.vim'
 
 
 "----------------------------------------------------
@@ -447,7 +472,7 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
 " [Common settings] =================================
 
 " " [Golang] ==========================================
-" 
+"
 " "----------------------------------------------------
 " " setting for go
 " "----------------------------------------------------
@@ -456,27 +481,27 @@ let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
 " " NeoBundleインストール後に下記を実行
 " " :GoInstallBinaries
 " " filetype plugin indent on の記述がNeoBundle関連の記述の下に必要
-" 
+"
 " NeoBundle 'fatih/vim-go'
-" 
+"
 " let g:go_highlight_functions = 1
 " let g:go_highlight_methods = 1
 " let g:go_highlight_fields = 1
 " let g:go_highlight_types = 1
 " let g:go_highlight_operators = 1
 " let g:go_highlight_build_constraints = 1
-" 
-" 
+"
+"
 " " オムニ補完 : <C-x><C-o>
 " " buffer for completion : <C-x><C-n>
 " NeoBundle 'roxma/SimpleAutoComplPop'
-" 
+"
 " " scratchウインドウが開かないように
 " set completeopt=menu
-" 
+"
 " " おせっかいすぎる自動補完選択をOff
 " let g:sacpEnable = 0
- 
+
 
 
 " [PHP] ===============================================
@@ -533,7 +558,7 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 "   \ 'active_filetypes': ['php']
 "   \}
 "
-" let g:syntastic_php_checkers=['php', 'phpcs', 'phpmd'] 
+" let g:syntastic_php_checkers=['php', 'phpcs', 'phpmd']
 "
 " " phpcs
 " let g:syntastic_php_phpcs_args='--standard=$HOME/.phpconf/phpcs/ruleset.xml'
@@ -560,7 +585,7 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 
 
 "----------------------------------------------------
-" phpcomplete 
+" phpcomplete
 " omni補完強化
 "----------------------------------------------------
 " Better class detection:
@@ -582,8 +607,9 @@ NeoBundle 'shawncplus/phpcomplete.vim'
 " phpcomplete-extendedもいれると幸せになれるらしい
 
 let g:phpcomplete_parse_docblock_comments = 1
-" let g:phpcomplete_search_tags_for_variables = 1
+let g:phpcomplete_search_tags_for_variables = 1
 
+set omnifunc=phpcomplete#CompletePHP
 
 "----------------------------------------------------
 " php_localvarcheck
@@ -647,7 +673,7 @@ NeoBundle 'szw/vim-tags'
 " Universal Ctagsをインストール
 " brew tap universal-ctags/universal-ctags
 " brew install --HEAD universal-ctags
-" 
+"
 " かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
 " brew uninstall ctags
 "
@@ -693,6 +719,19 @@ nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
 " :tp	（タグが重複している場合）前のタグへ
 " :tselect	現在のタグの一覧を表示
 
+
+"------------------------------------------------------
+" CamelCase Spell Checker
+"------------------------------------------------------
+
+NeoBundle 'kmszk/CCSpellCheck.vim'
+
+augroup CCSpellCheck
+	autocmd!
+	autocmd BufWinEnter,BufWritePost * call CCSpellCheck#check()
+augroup END
+
+
 "------------------------------------------------------
 " Neobundle settings end.
 "------------------------------------------------------
@@ -730,17 +769,18 @@ endif
 " NeoBundleの前に書くと効かないらしい
 syntax on
 
-" Go用のセッティング。これがないとvim-goが動かない
-filetype plugin indent on
-
 " スペルチェック
 set spell
 set spelllang=en,cjk
+
+" Enable filetype plugins
+filetype plugin indent on
 
 " 全体対象にスペルチェック
 syntax spell toplevel
 " syntax spell notoplevel
 
+" ハイライト再セット
 hi clear SpellBad
 hi SpellBad cterm=underline
 
