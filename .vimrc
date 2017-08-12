@@ -85,9 +85,6 @@ nnoremap Q <Nop>
 " recodingしない
 nnoremap q <Nop>
 
-" 勝手に第一候補を選択して入れない
-set completeopt+=noinsert
-
 " ファイル補完をshellに近く
 set wildmode=longest,full
 
@@ -784,7 +781,9 @@ syntax spell toplevel
 hi clear SpellBad
 hi SpellBad cterm=underline
 
-set completeopt+=noselect,noinsert
+if version >= 800
+	set completeopt+=noselect,noinsert
+endif
 
 " [memo]
 " 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
