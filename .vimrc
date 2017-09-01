@@ -100,6 +100,10 @@ set showmatch
 " ESCキー2度押しでハイライトの切り替え
 nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
 
+".vimrc
+" 補完候補が表示されている場合は確定。そうでない場合は改行
+inoremap <expr><CR>  pumvisible() ? neocomplcache#close_popup() : "<CR>"
+
 "前回閉じたときのカーソルの位置を保存
 augroup vimrcEx
   au BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
@@ -188,15 +192,21 @@ vnoremap <silent> <C-p> "0p<CR>
 " :FZFコマンドを使えるように
 set rtp+=~/.fzf
 
-" replace of Ctrl-p
-nnoremap <C-p> :FZF<CR>
 nnoremap <C-b> :Fb<CR>
-
-" nnoremap <C-q> :FZFQuickfix<CR>
+nnoremap <C-p> :FZFFileList<CR>
 
 :command! Fq FZFQuickfix
 :command! Fmru FZFMru
 :command! Fb FZFBuffer
+
+" [Replace of Ctrl-p] ========================================
+" 除外したいファイルが有れば 
+" ! -name [ファイル名]
+" を追加すると除外できる
+
+command! FZFFileList call fzf#run({
+			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
+			\ 'sink': 'e'})
 
 " [MRU] ========================================
 "
@@ -282,9 +292,144 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 
 
 "----------------------------------------------------
+" Shougo/neocomplete.vim
+"----------------------------------------------------
+
+NeoBundle "Shougo/neocomplete.vim"
+
+let g:neocomplete_php_locale = 'ja'
+
+"
+" Disable AutoComplPop.
+let g:acp_enableAtStartup = 0
+" Use neocomplete.
+let g:neocomplete#enable_at_startup = 1
+" Use smartcase.
+let g:neocomplete#enable_smart_case = 1
+
+let g:neocomplete#enable_underbar_completion = 1
+let g:neocomplete#enable_camel_case_completion  =  1
+
+let g:neocomplete#enable_auto_close_preview = 0
+autocmd InsertLeave * silent! pclose!
+
+" Define dictionary.
+let g:neocomplete#sources#dictionary#dictionaries = {
+    \ 'default' : '',
+    \ 'vimshell' : $HOME.'/.vimshell_hist',
+    \ 'scheme' : $HOME.'/.gosh_completions'
+        \ }
+
+" Define keyword.
+if !exists('g:neocomplete#keyword_patterns')
+    let g:neocomplete#keyword_patterns = {}
+endif
+let g:neocomplete#keyword_patterns['default'] = '\h\w*'
+
+" Plugin key-mappings.
+inoremap <expr><C-g>     neocomplete#undo_completion()
+inoremap <expr><C-l>     neocomplete#complete_common_string()
+
+" Recommended key-mappings.
+" <CR>: close popup and save indent.
+inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
+function! s:my_cr_function()
+  return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
+  " For no inserting <CR> key.
+  "return pumvisible() ? "\<C-y>" : "\<CR>"
+endfunction
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+" <C-h>, <BS>: close popup and delete backword char.
+" inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
+" inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
+" Close popup by <Space>.
+"inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
+
+" AutoComplPop like behavior.
+"let g:neocomplete#enable_auto_select = 1
+
+" Shell like behavior(not recommended).
+"set completeopt+=longest
+"let g:neocomplete#enable_auto_select = 1
+"let g:neocomplete#disable_auto_complete = 1
+"inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
+
+" Enable omni completion.
+autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
+autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
+autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
+autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
+autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
+
+" Enable heavy omni completion.
+if !exists('g:neocomplete#sources#omni#input_patterns')
+  let g:neocomplete#sources#omni#input_patterns = {}
+endif
+
+" let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
+"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
+"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+let g:neocomplete#sources#omni#input_patterns.typescript = '[^. \t]\.\%(\h\w*\)\?' " Same as JavaScript
+
+" For perlomni.vim setting.
+" https://github.com/c9s/perlomni.vim
+let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
+
+" 補完を始めるキーワード長を長くする
+let g:neocomplete#sources#syntax#min_keyword_length = 4
+let g:neocomplete#auto_completion_start_length = 4
+
+" 補完が止まった際に、スキップする長さを短くする
+let g:neocomplete#skip_auto_completion_time = '0.2'
+
+" 使用する補完の種類を減らす
+" 現在のSourceの取得は `:echo keys(neocomplete#variables#get_sources())`
+" デフォルト: ['file', 'tag', 'neosnippet', 'vim', 'dictionary', 'omni', 'member', 'syntax', 'include', 'buffer', 'file/include']
+let g:neocomplete#sources = {
+  \ '_' : ['vim', 'omni', 'include', 'buffer', 'neosnippet', 'file/include']
+  \ }
+
+let g:enable_fuzzy_completion = 0
+let g:neocomplete#enable_ignore_case = 0
+let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+
+"ポップアップメニューで表示される候補の数。初期値は100
+let g:neocomplete#max_list = 20
+
+"
+"
+" " "----------------------------------------------------
+" " " Valloric/YouCompleteMe
+" " "----------------------------------------------------
+" " "
+" " " cd ~/.vim/bundle/YouCompleteMe
+" " " ./install.py --all
+" " "
+" "
+" " NeoBundle "Valloric/YouCompleteMe"
+"
+"
+" "----------------------------------------------------
+" " padawan-php/padawan.vim
+" "----------------------------------------------------
+" "
+" " composerをinstallすること
+" " https://getcomposer.org/doc/00-intro.md#globally
+" "
+" " mv composer.phar /usr/local/bin/composer
+" "
+" NeoBundle 'mkusher/padawan.vim'
+"
+" let $PATH=$PATH . ':' . expand('~/.composer/vendor/bin')"
+" let g:padawan#composer_command = "php /user/local/bin/composer"
+
+
+
+"----------------------------------------------------
 " tpope/vim-endwise
 "----------------------------------------------------
-" shell とかの if-endif とか閉じてくれる
+" shell とかvimscriptとかrubyの if-endif とか閉じてくれる
 
 NeoBundle 'tpope/vim-endwise'
 
@@ -424,20 +569,20 @@ NeoBundle 'AndrewRadev/splitjoin.vim'
 
 
 
-"----------------------------------------------------
-" vim-scripts/AutoComplPop
-"----------------------------------------------------
-" neo complete重い
-" Vimのデフォルトの補完を利用し、ポップアップを自動化しているこちらを採用
+" "----------------------------------------------------
+" " vim-scripts/AutoComplPop
+" "----------------------------------------------------
+" " neo complete重い
+" " Vimのデフォルトの補完を利用し、ポップアップを自動化しているこちらを採用
+" "
+" " <C-e>でキャンセルして続きをタイピング
+" " ざっくり打っても候補がでる
+" "
+" NeoBundle 'vim-scripts/AutoComplPop'
 "
-" <C-e>でキャンセルして続きをタイピング
-" ざっくり打っても候補がでる
-"
-NeoBundle 'vim-scripts/AutoComplPop'
-
-" タブで第一候補を選択
-inoremap <expr><TAB>  pumvisible() ? "\<C-y>" : "\<TAB>"
-set completeopt-=preview
+" " タブで第一候補を選択
+" inoremap <expr><TAB>  pumvisible() ? "\<C-y>" : "\<TAB>"
+" set completeopt-=preview
 
 
 "----------------------------------------------------
@@ -606,7 +751,8 @@ NeoBundle 'shawncplus/phpcomplete.vim'
 let g:phpcomplete_parse_docblock_comments = 1
 let g:phpcomplete_search_tags_for_variables = 1
 
-set omnifunc=phpcomplete#CompletePHP
+autocmd FileType php,phtml setlocal omnifunc=phpcomplete#CompletePHP
+
 
 "----------------------------------------------------
 " php_localvarcheck
@@ -700,7 +846,8 @@ let g:vim_tags_extension = '~'
 " 例：ctags -V --exclude=*.html --exclude=*.js ./*
 
 " for Fish対応
-let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' ~/project/application 2>/dev/null"
+let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' --languages=php ~/project 2>/dev/null"
+" let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' --regex-php='/Action_Helper_([A-Za-z0-9]+)/Application_Controller_Helper_\\1/' ~/project/application 2>/dev/null"
 
 " 新しいタブでジャンプ
 " FYI:http://at-grandpa.hatenablog.jp/entry/2015/10/28/224920
@@ -727,6 +874,19 @@ augroup CCSpellCheck
 	autocmd!
 	autocmd BufWinEnter,BufWritePost * call CCSpellCheck#check()
 augroup END
+
+"------------------------------------------------------
+" CamelCase Spell Checker
+"------------------------------------------------------
+
+NeoBundle 'leafgarland/typescript-vim'
+
+let g:typescript_compiler_binary = 'tsc'
+let g:typescript_compiler_options = ''
+autocmd FileType typescript :set makeprg=tsc
+autocmd QuickFixCmdPost [^l]* nested cwindow
+autocmd QuickFixCmdPost    l* nested lwindow
+let g:typescript_opfirst='\%([<>=,?^%|*/&]\|\([-:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)'
 
 
 "------------------------------------------------------

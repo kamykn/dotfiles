@@ -31,7 +31,7 @@ function sv() {
 			echo "Canceled"
 			;;
 		* )
-			chsv
+			sv
 			;;
 	esac
 
