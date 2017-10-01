@@ -5,6 +5,18 @@
 "------------------------------------------------------
 " Common Settings.
 "------------------------------------------------------
+"
+" Font Install
+"
+" FYI: http://dev.classmethod.jp/devenv/vim-ricty-for-powerline/
+" 画面拡大とかしたときに、terminalの行間隔が1.02とかになってないと下線が消えたりするかも
+"
+" ```
+" $ brew install ricty --vim-powerline --powerline
+" $ brew tap sanemat/font # No Fomularの場合
+" $ cp -f /usr/local/Cellar/ricty/4.0.1/share/fonts/Ricty*.ttf ~/Library/Fonts/
+" $ fc-cache -vf # しなくてもよい
+" ```
 
 colorscheme default
 
@@ -38,6 +50,8 @@ endif
 
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
+" macのterminalなら、環境設定->プロファイル->->詳細->Unicode 東アジアA(曖昧)の文字幅をW(広)にするにチェック
+" ↑フォントがRictyならこの設定はいらない
 set ambiwidth=double
 
 " タブの幅
@@ -845,8 +859,10 @@ let g:vim_tags_extension = '~'
 " -Vでデバッグ用情報を付与してくれる。(http://stackoverflow.com/questions/7736656/vim-and-ctags-ignoring-certain-files-while-generating-tags)
 " 例：ctags -V --exclude=*.html --exclude=*.js ./*
 
-" for Fish対応
-let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' --languages=php ~/project 2>/dev/null"
+" 細かいオプションは.ctagsにて
+let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project"
+
+" let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' --languages=php ~/project 2>/dev/null"
 " let g:vim_tags_project_tags_command = "ctags --languages=php -f ~/.tags -R --exclude=.git --exclude=.svn --exclude='*.js' --exclude='*.phtml' --exclude='*.sh' --regex-php='/Action_Helper_([A-Za-z0-9]+)/Application_Controller_Helper_\\1/' ~/project/application 2>/dev/null"
 
 " 新しいタブでジャンプ
@@ -870,10 +886,17 @@ nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
 
 NeoBundle 'kmszk/CCSpellCheck.vim'
 
-augroup CCSpellCheck
-	autocmd!
-	autocmd BufWinEnter,BufWritePost * call CCSpellCheck#check()
-augroup END
+let g:CCSpellCheckMinCharacterLength = 4
+let g:CCSpellCheckMaxSuggestWords    = 50
+let g:EnableCCSpellCheck             = 1
+
+" ハイライト再セット
+" let g:CCSpellCheckUseMySetting   = 1
+" let g:CCSpellCheckMatchGroupName = 'CCSpellBad'
+" highlight CCSpellBad cterm=reverse ctermfg=magenta gui=reverse guifg=magenta
+
+" hi clear CCSpellBad
+" hi CCSpellBad cterm=underline
 
 "------------------------------------------------------
 " CamelCase Spell Checker
@@ -939,7 +962,7 @@ syntax spell toplevel
 
 " ハイライト再セット
 hi clear SpellBad
-hi SpellBad cterm=underline
+hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
 if version >= 800
 	set completeopt+=noselect,noinsert

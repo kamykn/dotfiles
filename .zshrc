@@ -32,7 +32,7 @@ PROMPT="$USER@%m "
 PROMPT+="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%} "
 
 # 右部分 [時間]
-RPROMPT="%{$fg[green]%}[%*]%{$reset_color%}"
+# RPROMPT="%{$fg[green]%}[%*]%{$reset_color%}"
 
 ##====================================================##
 ##========================= Git ======================##
@@ -166,9 +166,89 @@ export TERM=xterm-256color
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 export FZF_DEFAULT_OPTS='--height 40% --reverse --border'
 
+# 下層cd
+fcd() {
+	local dir
+	dir=$(find ${1:-.} -path '*/\.*' -prune \
+		-o -type d -print 2> /dev/null | fzf +m) &&
+	cd "$dir"
+}
+
+# 上層cd
+fcdr() {
+	local declare dirs=()
+	get_parent_dirs() {
+		if [[ -d "${1}" ]]; then dirs+=("$1"); else return; fi
+		if [[ "${1}" == '/' ]]; then
+			for _dir in "${dirs[@]}"; do echo $_dir; done
+		else
+			get_parent_dirs $(dirname "$1")
+		fi
+	}
+	# local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
+	local DIR=$(get_parent_dirs "${1:-$PWD}" | fzf-tmux --tac)
+	cd "$DIR"
+}
+
+ffind() {
+	local FIND_OPTION=''
+
+	# 第一引数だけ見て-aかどうか評価するので注意
+	if [ "${1}" != "-a" ]; then
+		FIND_OPTION=" -type d -name '.*' -prune -or -not -name '.*'"
+	fi
+
+	eval find . "*" "${FIND_OPTION}" | fzf
+}
+
+# git commit browser
+fcommitshow() {
+	git log --graph --color=always \
+		--format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
+	fzf --ansi --no-sort --reverse --tiebreak=index --bind=ctrl-s:toggle-sort \
+		--bind "ctrl-m:execute:
+			(grep -o '[a-f0-9]\{7\}' | head -1 |
+			xargs -I % sh -c 'git show --color=always % | less -R') << 'FZF-EOF'
+			{}
+FZF-EOF"
+}
+
+# commit hash search
+fcommitsearch() {
+	local commits commit
+	commits=$(git log --color=always --pretty=oneline --abbrev-commit --reverse) &&
+		commit=$(echo "$commits" | fzf --tac +s +m -e --ansi --reverse) &&
+		echo -n $(echo "$commit" | sed "s/ .*//")
+}
+
+# https://qiita.com/reviry/items/e798da034955c2af84c5
+fadd() {
+	local out q n addfiles
+	while out=$(
+		git status --short |
+		awk '{if (substr($0,2,1) !~ / /) print $2}' |
+		fzf-tmux --multi --exit-0 --expect=ctrl-d); do
+		q=$(head -1 <<< "$out")
+		n=$[$(wc -l <<< "$out") - 1]
+		addfiles=(`echo $(tail "-$n" <<< "$out")`)
+		[[ -z "$addfiles" ]] && continue
+		if [ "$q" = ctrl-d ]; then
+			git diff --color=always $addfiles | less -R
+		else
+			git add $addfiles
+		fi
+	done
+}
 
 ##====================================================##
-##==================== gitをbrew優先に ==================##
+##================== 画像プレビュー ==================##
+##====================================================##
+
+# macのみ
+alias ql='qlmanage -p "$@" >& /dev/null'
+
+##====================================================##
+##================= gitをbrew優先に ==================##
 ##====================================================##
 
 PATH="/usr/local/bin:${PATH}"
