@@ -146,7 +146,7 @@ augroup PHP
   " autocmd FileType php set makeprg=php\ -l\ %
   " set errorformat=%m\ in\ %f\ on\ line\ %l
   " php -lの構文チェックでエラーがなければ「No syntax errors」の一行だけ出力される
-  autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | else | cclose | endif
+  autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | endif
 augroup END
 
 function! PhpLint()
@@ -191,6 +191,9 @@ vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
 vnoremap <silent> <C-p> "0p<CR>
 
+" 行末空白削除
+:command! Sdel s/ *$// | noh
+
 
 "------------------------------------------------------
 " FZF
@@ -214,7 +217,7 @@ nnoremap <C-p> :FZFFileList<CR>
 :command! Fb FZFBuffer
 
 " [Replace of Ctrl-p] ========================================
-" 除外したいファイルが有れば 
+" 除外したいファイルが有れば
 " ! -name [ファイル名]
 " を追加すると除外できる
 
@@ -891,12 +894,10 @@ let g:CCSpellCheckMaxSuggestWords    = 50
 let g:EnableCCSpellCheck             = 1
 
 " ハイライト再セット
-" let g:CCSpellCheckUseMySetting   = 1
-" let g:CCSpellCheckMatchGroupName = 'CCSpellBad'
-" highlight CCSpellBad cterm=reverse ctermfg=magenta gui=reverse guifg=magenta
+let g:CCSpellCheckMatchGroupName = 'CCSpellBad'
 
-" hi clear CCSpellBad
-" hi CCSpellBad cterm=underline
+" neobundle#begin() ~  neobundle#end()の外で指定
+" highlight CCSpellBad cterm=reverse ctermfg=magenta gui=reverse guifg=magenta
 
 "------------------------------------------------------
 " CamelCase Spell Checker
@@ -967,6 +968,9 @@ hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE g
 if version >= 800
 	set completeopt+=noselect,noinsert
 endif
+
+" CCSpellBad
+" highlight CCSpellBad cterm=reverse ctermfg=magenta gui=reverse guifg=magenta
 
 " [memo]
 " 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
