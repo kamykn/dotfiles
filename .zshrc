@@ -165,6 +165,7 @@ export TERM=xterm-256color
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 export FZF_DEFAULT_OPTS='--height 40% --reverse --border'
+# export FZF_DEFAULT_OPTS='--height 40% --border'
 
 # 下層cd
 fcd() {
@@ -238,6 +239,26 @@ fadd() {
 			git add $addfiles
 		fi
 	done
+}
+
+# worktree移動
+function cdworktree() {
+	# カレントディレクトリがGitリポジトリ上かどうか
+	# git status &>/dev/null # 重い場合がある？
+	git rev-parse &>/dev/null
+	if [ $? -ne 0 ]; then
+		echo fatal: Not a git repository.
+		return
+	fi
+
+	local selectedWorkTreeDir=`git worktree list | fzf | awk '{print $1}'`
+
+	if [ "$selectedWorkTreeDir" = "" ]; then
+		# Maybe canceled by Ctrl-C.
+		return
+	fi
+
+	cd ${selectedWorkTreeDir}
 }
 
 ##====================================================##
