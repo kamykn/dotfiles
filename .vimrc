@@ -108,6 +108,9 @@ set lazyredraw
 " 対応カッコ表示
 set showmatch
 
+" CursolHoldやcrash-recoveryのための待ち時間(default:4000)
+set updatetime=300
+
 " カーソルラインをハイライト
 " set cursorline
 
@@ -212,9 +215,9 @@ set rtp+=~/.fzf
 nnoremap <C-b> :Fb<CR>
 nnoremap <C-p> :FZFFileList<CR>
 
-:command! Fq FZFQuickfix
-:command! Fmru FZFMru
-:command! Fb FZFBuffer
+command! Fq FZFQuickFix
+command! Fmru FZFMru
+command! Fb FZFBuffer
 
 " [Replace of Ctrl-p] ========================================
 " 除外したいファイルが有れば
@@ -256,7 +259,7 @@ endfunction
 
 " [QuickFix] ===================================
 "
-command! FZFQuickfix call fzf#run({
+command! FZFQuickFix call fzf#run({
 			\  'source':  Get_qf_text_list(),
 			\  'sink':    function('s:qf_sink'),
 			\  'options': '-m -x +s',
@@ -281,7 +284,6 @@ endfunction
 " QuickFix形式のstringからtabeに渡す
 function! s:qf_sink(line)
 	let parts = split(a:line, '\s')
-	" echo parts
 	execute 'tabe ' . parts[0]
 endfunction
 
@@ -583,6 +585,32 @@ NeoBundle 'tpope/vim-surround'
 " gJ 改行 -> 1行
 
 NeoBundle 'AndrewRadev/splitjoin.vim'
+
+
+"----------------------------------------------------
+" vim-brightest
+"----------------------------------------------------
+" 画面内のカーソル下の単語と同じ単語をハイライト
+
+NeoBundle "osyo-manga/vim-brightest"
+let g:brightest#enable_on_CursorHold = 1
+
+" ハイライトする単語のパターンを設定します
+" デフォルト（空の文字列の場合）は <cword> が使用されます
+" NOTE: <cword> の場合は前方にある単語も検出します
+let g:brightest#pattern = '\k\+'
+
+" " filetype=cpp を無効にする
+" let g:brightest#enable_filetypes = {
+" \   "cpp" : 0
+" \}
+
+" filetype=vim のみを有効にする
+let g:brightest#enable_filetypes = {
+\   "_"   : 0,
+\   "vim" : 1,
+\   "php" : 1,
+\}
 
 
 

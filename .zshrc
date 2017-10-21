@@ -26,7 +26,8 @@ autoload -U colors     ; colors
 
 # 名前@マシン名 プロンプト
 # PROMPT="%{$reset_color%}%{$fg[green]%}$USER%{$reset_color%}@%{$fg[cyan]%}%m%{$reset_color%} "
-PROMPT="$USER@%m "
+# PROMPT="$USER@%m "
+PROMPT=""
 
 # [場所] プロンプト
 PROMPT+="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%} "
@@ -229,16 +230,16 @@ fadd() {
 		git status --short |
 		awk '{if (substr($0,2,1) !~ / /) print $2}' |
 		fzf-tmux --multi --exit-0 --expect=ctrl-d); do
-		q=$(head -1 <<< "$out")
-		n=$[$(wc -l <<< "$out") - 1]
-		addfiles=(`echo $(tail "-$n" <<< "$out")`)
-		[[ -z "$addfiles" ]] && continue
-		if [ "$q" = ctrl-d ]; then
-			git diff --color=always $addfiles | less -R
-		else
-			git add $addfiles
-		fi
-	done
+			q=$(head -1 <<< "$out")
+			n=$[$(wc -l <<< "$out") - 1]
+			addfiles=(`echo $(tail "-$n" <<< "$out")`)
+			[[ -z "$addfiles" ]] && continue
+			if [ "$q" = ctrl-d ]; then
+				git diff --color=always $addfiles | less -R
+			else
+				git add $addfiles
+			fi
+		done
 }
 
 # worktree移動
@@ -254,7 +255,7 @@ function cdworktree() {
 	local selectedWorkTreeDir=`git worktree list | fzf | awk '{print $1}'`
 
 	if [ "$selectedWorkTreeDir" = "" ]; then
-		# Maybe canceled by Ctrl-C.
+		# Ctrl-C.
 		return
 	fi
 
