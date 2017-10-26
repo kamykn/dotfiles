@@ -88,7 +88,7 @@ set virtualedit+=onemore
 set backspace=indent,eol,start
 
 " カーソルの上下に確保する表示行
-set so=7
+set so=5
 
 " コマンド履歴
 set history=500
@@ -107,6 +107,10 @@ set lazyredraw
 
 " 対応カッコ表示
 set showmatch
+
+" 100 桁以上はハイライトしない
+" 既定値では 3000
+set synmaxcol=600
 
 " CursolHoldやcrash-recoveryのための待ち時間(default:4000)
 set updatetime=300

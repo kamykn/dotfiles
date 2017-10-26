@@ -1,0 +1,23 @@
+# main view の左端にコミットIDを表示する
+set main-view = id date author:email-user commit-title:graph=yes,refs=yes
+
+# utf-8 文字で画面描画する (~でトグル)
+set line-graphics = ascii
+
+# 検索時に大文字小文字を無視する (default: false)
+set ignore-case = true
+
+# リフレッシュするタイミング
+set refresh-mode = auto
+set refresh-mode = after-command
+set refresh-mode = periodic
+set refresh-interval = 1
+
+
+# g をファイル先頭に移動に変更、 view-grep を再割当て
+bind generic g      move-first-line
+bind generic /      view-grep
+
+# G でファイル末尾に移動 (default: :toggle commit-title-graph)
+bind generic G      move-last-line
+bind main    G      move-last-line

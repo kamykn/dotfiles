@@ -25,12 +25,11 @@ autoload -U colors     ; colors
 # prompt -l
 
 # 名前@マシン名 プロンプト
-# PROMPT="%{$reset_color%}%{$fg[green]%}$USER%{$reset_color%}@%{$fg[cyan]%}%m%{$reset_color%} "
-# PROMPT="$USER@%m "
-PROMPT=""
+local promot_mark="%B%(!,#,$)%b"
+local prompt_location="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%}"
+local prompt_is_err="%(?,,%F{red}!%f )"
 
-# [場所] プロンプト
-PROMPT+="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%} "
+
 
 # 右部分 [時間]
 # RPROMPT="%{$fg[green]%}[%*]%{$reset_color%}"
@@ -58,15 +57,15 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           "(%F{green}%b%f%c%u) "
-zstyle ':vcs_info:*'     actionformats     '(%b|%a) '
+zstyle ':vcs_info:*'     formats           " (%F{green}%b%f%c%u)"
+zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
-# プロンプト表示
-PROMPT+='${vcs_info_msg_0_}'
+# プロンプト
+PROMPT="${prompt_location}"'$vcs_info_msg_0_'" ${prompt_is_err}${promot_mark} "
 
 # fzfでブランチ名絞込チェックアウト
 # ローカルブランチ
-fbr() {
+fbranch() {
 	local branches branch
 	branches=$(git branch) &&
 	branch=$(echo "$branches" | fzf +s +m) &&
@@ -165,8 +164,7 @@ export TERM=xterm-256color
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
-export FZF_DEFAULT_OPTS='--height 40% --reverse --border'
-# export FZF_DEFAULT_OPTS='--height 40% --border'
+export FZF_DEFAULT_OPTS='--height 40% --reverse'
 
 # 下層cd
 fcd() {
@@ -260,6 +258,18 @@ function cdworktree() {
 	fi
 
 	cd ${selectedWorkTreeDir}
+}
+
+# worktree移動
+function cdrepo() {
+	local selectedRepo=`ghq list -p | fzf`
+
+	if [ "$selectedRepo" = "" ]; then
+		# Ctrl-C.
+		return
+	fi
+
+	cd ${selectedRepo}
 }
 
 ##====================================================##
