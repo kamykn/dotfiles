@@ -16,7 +16,7 @@ set refresh-interval = 1
 
 # g をファイル先頭に移動に変更、 view-grep を再割当て
 bind generic g      move-first-line
-bind generic /      view-grep
+# bind generic /      view-grep
 
 # G でファイル末尾に移動 (default: :toggle commit-title-graph)
 bind generic G      move-last-line

@@ -2,6 +2,9 @@
 "                     kmszk .vimrc
 " -----------------------------------------------------
 "
+" vim8.0+ required
+" brew upgrade vim --with-lua --with-python3
+"
 "------------------------------------------------------
 " Common Settings.
 "------------------------------------------------------
@@ -123,7 +126,7 @@ nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
 
 ".vimrc
 " 補完候補が表示されている場合は確定。そうでない場合は改行
-inoremap <expr><CR>  pumvisible() ? neocomplcache#close_popup() : "<CR>"
+" inoremap <expr><CR>  pumvisible() ? neocomplcache#close_popup() : "<CR>"
 
 "前回閉じたときのカーソルの位置を保存
 augroup vimrcEx
@@ -315,141 +318,6 @@ NeoBundleFetch 'Shougo/neobundle.vim'
 
 
 "----------------------------------------------------
-" Shougo/neocomplete.vim
-"----------------------------------------------------
-
-NeoBundle "Shougo/neocomplete.vim"
-
-let g:neocomplete_php_locale = 'ja'
-
-"
-" Disable AutoComplPop.
-let g:acp_enableAtStartup = 0
-" Use neocomplete.
-let g:neocomplete#enable_at_startup = 1
-" Use smartcase.
-let g:neocomplete#enable_smart_case = 1
-
-let g:neocomplete#enable_underbar_completion = 1
-let g:neocomplete#enable_camel_case_completion  =  1
-
-let g:neocomplete#enable_auto_close_preview = 0
-autocmd InsertLeave * silent! pclose!
-
-" Define dictionary.
-let g:neocomplete#sources#dictionary#dictionaries = {
-    \ 'default' : '',
-    \ 'vimshell' : $HOME.'/.vimshell_hist',
-    \ 'scheme' : $HOME.'/.gosh_completions'
-        \ }
-
-" Define keyword.
-if !exists('g:neocomplete#keyword_patterns')
-    let g:neocomplete#keyword_patterns = {}
-endif
-let g:neocomplete#keyword_patterns['default'] = '\h\w*'
-
-" Plugin key-mappings.
-inoremap <expr><C-g>     neocomplete#undo_completion()
-inoremap <expr><C-l>     neocomplete#complete_common_string()
-
-" Recommended key-mappings.
-" <CR>: close popup and save indent.
-inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-function! s:my_cr_function()
-  return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
-  " For no inserting <CR> key.
-  "return pumvisible() ? "\<C-y>" : "\<CR>"
-endfunction
-" <TAB>: completion.
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" <C-h>, <BS>: close popup and delete backword char.
-" inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-" inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
-" Close popup by <Space>.
-"inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
-
-" AutoComplPop like behavior.
-"let g:neocomplete#enable_auto_select = 1
-
-" Shell like behavior(not recommended).
-"set completeopt+=longest
-"let g:neocomplete#enable_auto_select = 1
-"let g:neocomplete#disable_auto_complete = 1
-"inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
-
-" Enable omni completion.
-autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-
-" Enable heavy omni completion.
-if !exists('g:neocomplete#sources#omni#input_patterns')
-  let g:neocomplete#sources#omni#input_patterns = {}
-endif
-
-" let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
-"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
-let g:neocomplete#sources#omni#input_patterns.typescript = '[^. \t]\.\%(\h\w*\)\?' " Same as JavaScript
-
-" For perlomni.vim setting.
-" https://github.com/c9s/perlomni.vim
-let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
-
-" 補完を始めるキーワード長を長くする
-let g:neocomplete#sources#syntax#min_keyword_length = 4
-let g:neocomplete#auto_completion_start_length = 4
-
-" 補完が止まった際に、スキップする長さを短くする
-let g:neocomplete#skip_auto_completion_time = '0.2'
-
-" 使用する補完の種類を減らす
-" 現在のSourceの取得は `:echo keys(neocomplete#variables#get_sources())`
-" デフォルト: ['file', 'tag', 'neosnippet', 'vim', 'dictionary', 'omni', 'member', 'syntax', 'include', 'buffer', 'file/include']
-let g:neocomplete#sources = {
-  \ '_' : ['vim', 'omni', 'include', 'buffer', 'neosnippet', 'file/include']
-  \ }
-
-let g:enable_fuzzy_completion = 0
-let g:neocomplete#enable_ignore_case = 0
-let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
-
-"ポップアップメニューで表示される候補の数。初期値は100
-let g:neocomplete#max_list = 20
-
-"
-"
-" " "----------------------------------------------------
-" " " Valloric/YouCompleteMe
-" " "----------------------------------------------------
-" " "
-" " " cd ~/.vim/bundle/YouCompleteMe
-" " " ./install.py --all
-" " "
-" "
-" " NeoBundle "Valloric/YouCompleteMe"
-"
-"
-" "----------------------------------------------------
-" " padawan-php/padawan.vim
-" "----------------------------------------------------
-" "
-" " composerをinstallすること
-" " https://getcomposer.org/doc/00-intro.md#globally
-" "
-" " mv composer.phar /usr/local/bin/composer
-" "
-" NeoBundle 'mkusher/padawan.vim'
-"
-" let $PATH=$PATH . ':' . expand('~/.composer/vendor/bin')"
-" let g:padawan#composer_command = "php /user/local/bin/composer"
-
-
-
-"----------------------------------------------------
 " tpope/vim-endwise
 "----------------------------------------------------
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
@@ -489,15 +357,14 @@ nmap + :Switch<CR>
 " Vim Fugitive
 "----------------------------------------------------
 " Git支援
+"
+" Gstatus
+" Gwrite
+" Gmove
+" Gremove
+" Gblame
 
 NeoBundle 'tpope/vim-fugitive'
-
-" alias
-:command! Gs   Gstatus
-:command! Gadd Gwrite
-:command! Gmv  Gmove
-:command! Grm  Gremove
-:command! Gbl  Gblame
 
 
 "----------------------------------------------------
@@ -616,24 +483,6 @@ let g:brightest#enable_filetypes = {
 \   "php" : 1,
 \}
 
-
-
-" "----------------------------------------------------
-" " vim-scripts/AutoComplPop
-" "----------------------------------------------------
-" " neo complete重い
-" " Vimのデフォルトの補完を利用し、ポップアップを自動化しているこちらを採用
-" "
-" " <C-e>でキャンセルして続きをタイピング
-" " ざっくり打っても候補がでる
-" "
-" NeoBundle 'vim-scripts/AutoComplPop'
-"
-" " タブで第一候補を選択
-" inoremap <expr><TAB>  pumvisible() ? "\<C-y>" : "\<TAB>"
-" set completeopt-=preview
-
-
 "----------------------------------------------------
 " Vim Neosnippet
 "----------------------------------------------------
@@ -726,82 +575,64 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " unusedcode：使われていないコードを検出するルール
 
 
-"----------------------------------------------------
-" syntastic.vim PHPのシンタックスチェック
-"----------------------------------------------------
-"
-" ErrorsでQuickFixにエラーが一覧表示
-"
-
-" NeoBundle 'scrooloose/syntastic'
-"
-" command! Err Errors
-"
-" " phpmd/phpcsだけのエラーリストを表示
-" command! Phpmd  SyntasticCheck phpmd
-" command! Phpmdl SyntasticCheck phpmd | Errors
-"
-" command! Phpcs  SyntasticCheck phpcs
-" command! Phpcsl SyntasticCheck phpcs | Errors
-"
-" let g:syntastic_mode_map = {
-"   \ 'mode': 'active',
-"   \ 'active_filetypes': ['php']
-"   \}
-"
-" let g:syntastic_php_checkers=['php', 'phpcs', 'phpmd']
-"
-" " phpcs
-" let g:syntastic_php_phpcs_args='--standard=$HOME/.phpconf/phpcs/ruleset.xml'
-"
-" let g:syntastic_php_phpmd_post_args='$HOME/.phpconf/phpmd/ruleset.xml'
-"
-" " Githubに書かれているrecommended設定
-" set statusline+=%#warningmsg#
-" set statusline+=%{SyntasticStatuslineFlag()}
-" set statusline+=%*
-"
-" let g:syntastic_always_populate_loc_list = 1 "エラーリスト更新
-" let g:syntastic_auto_loc_list = 2 " 1:エラーの際にQuickFixが立ち上がる 2: 立ち上がらない
-" let g:syntastic_check_on_open = 1
-" let g:syntastic_check_on_wq = 0
-"
-" let g:syntastic_enable_signs        = 1
-" let g:syntastic_echo_current_error  = 1
-" let g:syntastic_enable_highlighting = 1
-" let g:syntastic_php_php_args        = '-l'
-" " set statusline+=%#warningmsg#
-" " set statusline+=%{SyntasticStatuslineFlag()}
-" " set statusline+=%*
 
 
 "----------------------------------------------------
-" phpcomplete
+" Deoplete
 " omni補完強化
 "----------------------------------------------------
-" Better class detection:
-" Recognize /* @var $yourvar YourClass */ type mark comments
-" Recognize $instance = new Class; class instantiations
-" Recognize $instance = Class::getInstance(); singleton instances
-" Recognize $date = DateTime::createFromFormat(...) built-in class return types
-" Recognize type hinting in function prototypes
-" Recognize types in @param lines in function docblocks
-" Recognize $object = SomeClass::staticCall(...) return types from docblocks
-" Recognize array of objects via docblock like $foo[42]-> or for variables created in foreach
+"
+" pip3が必要。そしてneovimのPython3 interfaceが必要(?)
+" pip3 install neovim
+"
+NeoBundle 'roxma/nvim-yarp'
+NeoBundle 'roxma/vim-hug-neovim-rpc'
+NeoBundle 'Shougo/deoplete.nvim'
 
-" 但しautoComplPopには上手く入ってこない
-" C-x oを利用すること
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#enable_smart_case = 1
+let g:deoplete#omni_patterns = {
+  \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+  \ }
 
-NeoBundle 'shawncplus/phpcomplete.vim'
 
-" composerなど使っている場合
-" phpcomplete-extendedもいれると幸せになれるらしい
-
-let g:phpcomplete_parse_docblock_comments = 1
-let g:phpcomplete_search_tags_for_variables = 1
-
-autocmd FileType php,phtml setlocal omnifunc=phpcomplete#CompletePHP
-
+"----------------------------------------------------
+" phpcompleteのFork
+" omni補完強化
+"----------------------------------------------------
+"
+" cd ~/.vim/bundle/phpcd.vim/
+" composer install
+"
+" NeoBundle 'lvht/phpcd.vim'
+"
+" "----------------------------------------------------
+" " phpcomplete
+" " omni補完強化
+" "----------------------------------------------------
+" " Better class detection:
+" " Recognize /* @var $yourvar YourClass */ type mark comments
+" " Recognize $instance = new Class; class instantiations
+" " Recognize $instance = Class::getInstance(); singleton instances
+" " Recognize $date = DateTime::createFromFormat(...) built-in class return types
+" " Recognize type hinting in function prototypes
+" " Recognize types in @param lines in function docblocks
+" " Recognize $object = SomeClass::staticCall(...) return types from docblocks
+" " Recognize array of objects via docblock like $foo[42]-> or for variables created in foreach
+"
+" " 但しautoComplPopには上手く入ってこない
+" " C-x oを利用すること
+"
+" NeoBundle 'shawncplus/phpcomplete.vim'
+"
+" " composerなど使っている場合
+" " phpcomplete-extendedもいれると幸せになれるらしい
+"
+" let g:phpcomplete_parse_docblock_comments = 1
+" let g:phpcomplete_search_tags_for_variables = 1
+"
+" autocmd FileType php,phtml setlocal omnifunc=phpcomplete#CompletePHP
+"
 
 "----------------------------------------------------
 " php_localvarcheck
