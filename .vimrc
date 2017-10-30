@@ -10,46 +10,13 @@
 "------------------------------------------------------
 "
 " Font Install
-"
-" FYI: http://dev.classmethod.jp/devenv/vim-ricty-for-powerline/
-" 画面拡大とかしたときに、terminalの行間隔が1.02とかになってないと下線が消えたりするかも
-"
-" ```
-" $ brew install ricty --vim-powerline --powerline
-" $ brew tap sanemat/font # No Fomularの場合
-" $ cp -f /usr/local/Cellar/ricty/4.0.1/share/fonts/Ricty*.ttf ~/Library/Fonts/
-" $ fc-cache -vf # しなくてもよい
-" ```
+" https://github.com/miiton/Cica
 
 colorscheme default
-
-
 " 文字コード設定
 set encoding=utf-8
 set fileencoding=utf-8
 set fileformat=unix
-
-" 雑に打ってもイケるように
-nnoremap ; :
-
-" basic settings
-set title
-set nobackup
-set smartindent
-set autoindent
-
-" 行番号
-set number
-
-" ###重い###
-if version >= 703
-" set relativenumber
-endif
-
-" alias
-" nonuにするために一回relativenumberを解除する必要がある
-:command! Nu set relativenumber
-:command! NU set relativenumber!
 
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
@@ -57,90 +24,93 @@ endif
 " ↑フォントがRictyならこの設定はいらない
 set ambiwidth=double
 
+" indent
+set smartindent
+set autoindent
+" ターミナルのタイトルをセットする
+set title
 " タブの幅
 set noexpandtab
 set tabstop=4
 set shiftwidth=4
 set softtabstop=0
-
 " スワップファイルを作らない
 set noswapfile
-
 " undoファイルを作らない(for GVim)
 set noundofile
-
+" XXX~を作らない 
+set nobackup
 " カッコのハイライト1表示、0非表示(効いていないっぽい)
 let loaded_matchparen = 0
-
 " インクリメンタルサーチ 検索中にハイライトされる
 set incsearch
-
 " 検索時に大文字小文字を無視する
 set ignorecase
-
 " 検索ヒット文字をハイライト
 set hlsearch
-
 " C-vの矩形選択で行末より後ろもカーソルを置ける
 set virtualedit=block
-
 " 行の最後+1文字分カーソルを置ける
 set virtualedit+=onemore
-
 " バックスペースの挙動を7.2の時のように戻す
 set backspace=indent,eol,start
-
 " カーソルの上下に確保する表示行
 set so=5
-
 " コマンド履歴
 set history=500
-
-" exモードに入らない
-nnoremap Q <Nop>
-
-" recodingしない
-nnoremap q <Nop>
-
 " ファイル補完をshellに近く
 set wildmode=longest,full
-
 " スクロールスピード改善
 set lazyredraw
-
 " 対応カッコ表示
 set showmatch
-
-" 100 桁以上はハイライトしない
-" 既定値では 3000
+" 100 桁以上はハイライトしない(既定値では 3000)
 set synmaxcol=600
-
-" CursolHoldやcrash-recoveryのための待ち時間(default:4000)
+" CursorHoldやcrash-recoveryのための待ち時間(default:4000)
 set updatetime=300
 
-" カーソルラインをハイライト
-" set cursorline
+"行番号
+set number
+:command! Nu set relativenumber
+:command! NU set relativenumber!
 
+" MySQLのsyntax highlight
+let g:sql_type_default = 'mysql'
+
+"------------------------------------------------------
+" misc alias
+"------------------------------------------------------
+"
+" Vimrcへのショートカット
+:command! Vrc tabe | e ~/.vimrc
+:command! Src source ~/.vimrc
+" diff用バッファ
+:command! Diff tabnew | vnew | diffthis
+:command! D diffthis
+" grep書式自動挿入
+vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
+" 連続コピペ
+vnoremap <silent> <C-p> "0p<CR>
+" 行末空白削除
+:command! Sdel s/ *$// | noh
+" 雑に打ってもイケるように
+nnoremap ; :
+" exモードに入らない
+nnoremap Q <Nop>
+" recodingしない
+nnoremap q <Nop>
 " ESCキー2度押しでハイライトの切り替え
 nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
 
-".vimrc
-" 補完候補が表示されている場合は確定。そうでない場合は改行
-" inoremap <expr><CR>  pumvisible() ? neocomplcache#close_popup() : "<CR>"
+"------------------------------------------------------
+" autocmd
+"------------------------------------------------------
 
 "前回閉じたときのカーソルの位置を保存
 augroup vimrcEx
   au BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
   \ exe "normal g`\"" | endif
 augroup END
-
-" MySQLのsyntax highlight
-let g:sql_type_default = 'mysql'
-
-
-"------------------------------------------------------
-" autocmd
-"------------------------------------------------------
 
 " grep 後に quickfix勝手に開く
 autocmd QuickfixCmdPost grep cope
@@ -181,29 +151,6 @@ function! PhpLint()
 
 	call setqflist(l:errors, 'r')
 endfunction
-
-
-"------------------------------------------------------
-" misc alias
-"------------------------------------------------------
-"
-" Vimrcへのショートカット
-:command! Vrc tabe | e ~/.vimrc
-:command! Src source ~/.vimrc
-
-" diff用バッファ
-:command! Diff tabnew | vnew | diffthis
-:command! D diffthis
-
-" grep書式自動挿入
-vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
-
-" 連続コピペ
-vnoremap <silent> <C-p> "0p<CR>
-
-" 行末空白削除
-:command! Sdel s/ *$// | noh
-
 
 "------------------------------------------------------
 " FZF
@@ -583,6 +530,8 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 "----------------------------------------------------
 "
 " pip3が必要。そしてneovimのPython3 interfaceが必要(?)
+" FYI: http://kaworu.jpn.org/vim/deoplete
+" pip install neovim # or
 " pip3 install neovim
 "
 NeoBundle 'roxma/nvim-yarp'
@@ -810,7 +759,7 @@ endif
 " Common settings.
 "------------------------------------------------------
 
-" NeoBundleの前に書くと効かないらしい
+" NeoBundleの前に書くと効かないらしい系
 syntax on
 
 " スペルチェック
@@ -831,9 +780,6 @@ hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE g
 if version >= 800
 	set completeopt+=noselect,noinsert
 endif
-
-" CCSpellBad
-" highlight CCSpellBad cterm=reverse ctermfg=magenta gui=reverse guifg=magenta
 
 " [memo]
 " 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
