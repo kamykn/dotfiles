@@ -283,6 +283,7 @@ vmap <C-K> <Plug>(caw:hatpos:toggle)
 " -------------------------------------------------------
 Plug 'tpope/vim-surround'
 " -------------------------------------------------------
+" -------------------------------------------------------
 Plug 'tpope/vim-endwise'
 " -------------------------------------------------------
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
@@ -294,9 +295,12 @@ let g:php_localvarcheck_enable = 1
 let g:php_localvarcheck_global = 0
 
 " -------------------------------------------------------
+Plug 'tobyS/vmustache'
 Plug 'tobyS/pdv', {'for': ['php']}
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
 " -------------------------------------------------------
-let g:pdv_template_dir = $HOME ."/.vim/bundle/pdv/templates_snip"
+let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
 nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
 
 " -------------------------------------------------------
