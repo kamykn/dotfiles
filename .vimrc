@@ -12,11 +12,14 @@
 " Font Install
 " https://github.com/miiton/Cica
 
-colorscheme default
 " 文字コード設定
 set encoding=utf-8
 set fileencoding=utf-8
 set fileformat=unix
+
+" 色関連
+colorscheme default
+set t_Co=256
 
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
@@ -243,7 +246,7 @@ endfunction
 
 
 "------------------------------------------------------
-" VIm Plug
+" Vim Plug
 "------------------------------------------------------
 " [DownLoad]
 " $ curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -252,12 +255,16 @@ endfunction
 " :PlugInstall
 
 call plug#begin('~/.vim/plugged')
-" ----------------------------------------------------
-" Gstatus Gwrite Gmove Gremove Gblame
-Plug 'tpope/vim-fugitive'
+
+" -------------------------------------------------------
 Plug 'airblade/vim-gitgutter'
-" ----------------------------------------------------
+" -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'tpope/vim-fugitive'
+" -------------------------------------------------------
+" -------------------------------------------------------
 Plug 'junegunn/vim-easy-align'
+" -------------------------------------------------------
 " 選んだ範囲で整える
 xmap <Space> <Plug>(EasyAlign)*<Space>
 xmap ,  <Plug>(EasyAlign)*,
@@ -266,26 +273,36 @@ xmap g= <Plug>(EasyAlign)*=
 xmap ga <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'tyru/caw.vim'
+" -------------------------------------------------------
 nmap <C-K> <Plug>(caw:hatpos:toggle)
 vmap <C-K> <Plug>(caw:hatpos:toggle)
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'tpope/vim-surround'
-" ----------------------------------------------------
-" shell とかvimscriptとかrubyの if-endif とか閉じてくれる
+" -------------------------------------------------------
 Plug 'tpope/vim-endwise'
-" ----------------------------------------------------
+" -------------------------------------------------------
+" shell とかvimscriptとかrubyの if-endif とか閉じてくれる
+
+" -------------------------------------------------------
 Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
+" -------------------------------------------------------
 let g:php_localvarcheck_enable = 1
 let g:php_localvarcheck_global = 0
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'tobyS/pdv', {'for': ['php']}
+" -------------------------------------------------------
 let g:pdv_template_dir = $HOME ."/.vim/bundle/pdv/templates_snip"
 nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
-" ----------------------------------------------------
-" 画面内のカーソル下の単語と同じ単語をハイライト
+
+" -------------------------------------------------------
 Plug 'osyo-manga/vim-brightest'
+" -------------------------------------------------------
+" 画面内のカーソル下の単語と同じ単語をハイライト
 let g:brightest#enable_on_CursorHold = 1
 let g:brightest#pattern = '\k\+'
 let g:brightest#enable_filetypes = {
@@ -293,8 +310,10 @@ let g:brightest#enable_filetypes = {
 \   "vim" : 1,
 \   "php" : 1,
 \}
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'w0rp/ale'
+" -------------------------------------------------------
 " g:ale_lint_on_saveはデフォルトでon
 let g:ale_lint_on_text_changed = 'never'
 " let g:ale_set_loclist = 0
@@ -308,11 +327,15 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " design：ソフトの設計関連の問題を検出するルール
 " naming：長すぎたり、短すぎたりする名前を検出するルール
 " unusedcode：使われていないコードを検出するルール
-" ----------------------------------------------------
+
+" -------------------------------------------------------
+" Plug 'Shougo/deoplete.nvim'
+" -------------------------------------------------------
 " pip3が必要。そしてneovimのPython3 interfaceが必要(?)
 " FYI: http://kaworu.jpn.org/vim/deoplete
 " pip install neovim # or
 " pip3 install neovim
+
 if has('nvim')
 	Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 else
@@ -326,8 +349,10 @@ let g:deoplete#auto_complete_start_length = 3
 let g:deoplete#omni_patterns = {
   \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
   \ }
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'majutsushi/tagbar'
+" -------------------------------------------------------
 nmap <C-l> :TagbarToggle<CR>
 let g:tagbar_width = 50
 let g:tagbar_autoshowtag = 1
@@ -341,9 +366,11 @@ let g:tagbar_type_php  = {
 	\ 	'j:javascript functions:1'
 	\ ]
 	\ }
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'Shougo/neosnippet'
 Plug 'Shougo/neosnippet-snippets'
+" -------------------------------------------------------
 let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
 let g:neosnippet#enable_snipmate_compatibility = 1
 " dotfilesのphp.snipを適応するには
@@ -353,106 +380,50 @@ let g:neosnippet#enable_snipmate_compatibility = 1
 " :NeoSnippetEdit
 " で現在開いているファイルタイプのスニペットを編集できる
 " デフォルト通りなので<C-k>で利用可能
-" ----------------------------------------------------
+
+" -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
-" ----------------------------------------------------
-call plug#end()
-
-
-"------------------------------------------------------
-" Plugin
-"------------------------------------------------------
-
-"------------------------------------------------------
-" Neobundle settings start .
-"------------------------------------------------------
+" -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'szw/vim-tags'
+" -------------------------------------------------------
+" :TagsGenerate!
 "
-" [初回インストールコマンド]
+" # Universal Ctagsをインストール
+" brew tap universal-ctags/universal-ctags
+" brew install --HEAD universal-ctags
 "
-" mkdir -p ~/.vim/bundle
-" git clone https://github.com/Shougo/neobundle.vim ~/.vim/bundle/neobundle.vim
+" かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
+" brew uninstall ctags
 "
-
-" bundleで管理するディレクトリを指定
-set runtimepath+=~/.vim/bundle/neobundle.vim/
-call neobundle#begin(expand('~/.vim/bundle/'))
-
-" neobundle自体をneobundleで管理
-NeoBundleFetch 'Shougo/neobundle.vim'
-
-
-
-
-"----------------------------------------------------
-" StatusBar Plugin
-"----------------------------------------------------
-NeoBundle 'itchyny/lightline.vim'
-
-set laststatus=2
-if !has('gui_running')
-	  set t_Co=256
-endif
-
-" For Powerline
-let g:airline_theme='PaperColor'
-let g:lightline = {
-	\ 'colorscheme': 'PaperColor' ,
-    \ 'active': {
-    \   'left': [ [ 'mode', 'paste' ],
-    \             [ 'fugitive', 'readonly', 'filename', 'modified' ] ]
-    \ },
-    \ 'separator': { 'left': '', 'right': '' },
-    \ 'subseparator': { 'left': '⮁', 'right': '⮃' },
-    \ 'component_function': {
-    \   'fugitive': 'LightlineFugitive',
-    \   'readonly': 'LightlineReadonly',
-    \   'modified': 'LightlineModified'
-    \ },
-	\ }
-
-function! LightlineModified()
-	if &filetype == "help"
-		return ""
-	elseif &modified
-		return "+"
-	elseif &modifiable
-		return ""
-	else
-		return ""
-	endif
-endfunction
-
-function! LightlineReadonly()
-	if &filetype == "help"
-		return ""
-	elseif &readonly
-		return "⭤"
-	else
-		return ""
-	endif
-endfunction
-
-function! LightlineFugitive()
-	if exists("*fugitive#head")
-		let branch = fugitive#head()
-		return branch !=# '' ? '⭠ '.branch : ''
-	endif
-	return ''
-endfunction
-
-
-
-"------------------------------------------------------
-" Language settings start.
-"------------------------------------------------------
-
-" [Common settings] =================================
-
-" " [Golang] ==========================================
+" [旧メモ]
+" Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
+" FYI:https://gist.github.com/nazgob/1570678
 "
-" "----------------------------------------------------
-" " setting for go
-" "----------------------------------------------------
+command! Tagrm !rm ~/.tags
+command! Tag TagsGenerate!
+set tags+=~/.tags
+" 保存時に裏で自動でctagsを作成する
+let g:vim_tags_auto_generate = 0
+" tag保存メインファイル名
+let g:vim_tags_main_file = '.tags'
+" tagファイルのパス
+let g:vim_tags_extension = '~'
+" 細かいオプションは.ctagsにて
+let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project"
+" # 別タブ
+nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
+
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline_powerline_fonts = 1
+" let g:airline_left_sep = ''
+let g:airline_right_sep = ''
+let g:airline_theme = 'minimalist'
+
+" GO書くときに乗り換える
+" " [vim-go] ==========================================
 " " 使い方
 " " http://qiita.com/koara-local/items/6c886eccfb459159c431
 " " NeoBundleインストール後に下記を実行
@@ -473,93 +444,7 @@ endfunction
 " set completeopt=menu
 
 
-
-" [PHP] ===============================================
-"
-" [Language Settings end] ===========================
-
-
-
-"----------------------------------------------------
-" Ctags コマンド自動化
-"----------------------------------------------------
-" Vimからタグ作り直せる
-" :TagsGenerate!
-" 大きめのプロジェクトでは生成に少し時間がかかる
-
-NeoBundle 'szw/vim-tags'
-
-" Universal Ctagsをインストール
-" brew tap universal-ctags/universal-ctags
-" brew install --HEAD universal-ctags
-"
-" かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
-" brew uninstall ctags
-"
-" [旧メモ]
-" Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
-" FYI:https://gist.github.com/nazgob/1570678
-"
-
-command! Tagrm !rm ~/.tags
-command! Tag TagsGenerate!
-
-set tags+=~/.tags
-
-" 保存時に裏で自動でctagsを作成する
-let g:vim_tags_auto_generate = 0
-
-" tag保存メインファイル名
-let g:vim_tags_main_file = '.tags'
-
-" tagファイルのパス
-let g:vim_tags_extension = '~'
-
-" 実行コマンド
-" ~/projectが設定されている前提
-" コマンドの引数はファイルの回数の指定までのところまでしか読まない謎仕様(@Mac)
-" -Vでデバッグ用情報を付与してくれる。(http://stackoverflow.com/questions/7736656/vim-and-ctags-ignoring-certain-files-while-generating-tags)
-" 例：ctags -V --exclude=*.html --exclude=*.js ./*
-
-" 細かいオプションは.ctagsにて
-let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project"
-
-" 新しいタブでジャンプ
-" FYI:http://at-grandpa.hatenablog.jp/entry/2015/10/28/224920
-
-" # 分割 チラチラするけど…
-" nnoremap <C-]> :vs<CR> :exe("tjump ".expand('<cword>'))<CR><C-W>x
-
-" # 別タブ
-nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
-"
-" [メモ]
-" :tn	（タグが重複している場合）次のタグへ
-" :tp	（タグが重複している場合）前のタグへ
-" :tselect	現在のタグの一覧を表示
-
-
-"------------------------------------------------------
-" typescript
-"------------------------------------------------------
-
-" NeoBundle 'leafgarland/typescript-vim'
-"
-" let g:typescript_compiler_binary = 'tsc'
-" let g:typescript_compiler_options = ''
-" autocmd FileType typescript :set makeprg=tsc
-" autocmd QuickFixCmdPost [^l]* nested cwindow
-" autocmd QuickFixCmdPost    l* nested lwindow
-" let g:typescript_opfirst='\%([<>=,?^%|*/&]\|\([-:+]\)\1\@!\|!=\|in\%(stanceof\)\=\>\)'
-
-
-"------------------------------------------------------
-" Neobundle settings end.
-"------------------------------------------------------
-" 未インストールのプラグインがある場合、インストールするかどうかを尋ねてくれるようにする設定
-call neobundle#end()
-NeoBundleCheck
-
+call plug#end()
 
 "----------------------------------------------------
 " Vim neosnippet settings
@@ -567,13 +452,7 @@ NeoBundleCheck
 
 " neosnipets用のセッティング
 " Plugin key-mappings.
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
-
-" SuperTab like snippets behavior.
-"imap <expr><TAB>
-" \ pumvisible() ? "\<C-n>" :
-" \ neosnippet#expandable_or_jumpable() ?
-" \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
 
 smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
 \ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
