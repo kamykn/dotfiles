@@ -65,7 +65,7 @@ PROMPT="${prompt_location}"'$vcs_info_msg_0_'" ${prompt_is_err}${promot_mark} "
 
 # fzfでブランチ名絞込チェックアウト
 # ローカルブランチ
-fbranch() {
+fbr() {
 	local branches branch
 	branches=$(git branch) &&
 	branch=$(echo "$branches" | fzf +s +m) &&
@@ -81,6 +81,18 @@ fbrm() {
 	fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
 	git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
+
+
+# ローカルブランチ
+fbranchcp() {
+	local branches branch
+	branches=$(git branch) &&
+	branch=$(echo "$branches" | fzf +s +m) &&
+	echo $(echo "$branch" | sed "s/.* //" ) | tr -d "\n" `` | pbcopy; pbpaste ; echo '';
+}
+
+alias brname='git symbolic-ref --short HEAD'
+
 
 ##========================================================##
 ##====================== 補完の設定 ======================##

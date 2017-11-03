@@ -21,6 +21,15 @@ set fileformat=unix
 colorscheme default
 set t_Co=256
 
+syntax on
+
+" スペルチェック
+set spell
+set spelllang=en,cjk
+" スペルチェック対象
+syntax spell toplevel
+
+
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
 " macのterminalなら、環境設定->プロファイル->->詳細->Unicode 東アジアA(曖昧)の文字幅をW(広)にするにチェック
@@ -41,7 +50,7 @@ set softtabstop=0
 set noswapfile
 " undoファイルを作らない(for GVim)
 set noundofile
-" XXX~を作らない 
+" XXX~を作らない
 set nobackup
 " カッコのハイライト1表示、0非表示(効いていないっぽい)
 let loaded_matchparen = 0
@@ -70,7 +79,7 @@ set showmatch
 " 100 桁以上はハイライトしない(既定値では 3000)
 set synmaxcol=600
 " CursorHoldやcrash-recoveryのための待ち時間(default:4000)
-set updatetime=1000
+set updatetime=300
 
 "行番号
 set number
@@ -80,6 +89,17 @@ set number
 " MySQLのsyntax highlight
 let g:sql_type_default = 'mysql'
 
+" Enable filetype plugins
+filetype plugin indent on
+
+" ハイライト再セット
+hi clear SpellBad
+hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+
+if version >= 800
+	set completeopt+=noselect,noinsert
+endif
+
 "------------------------------------------------------
 " misc alias
 "------------------------------------------------------
@@ -88,8 +108,8 @@ let g:sql_type_default = 'mysql'
 :command! Vrc tabe | e ~/.vimrc
 :command! Src source ~/.vimrc
 " diff用バッファ
-:command! Diff tabnew | vnew | diffthis
-:command! D diffthis
+:command! DiffWindo tabnew | vnew | diffthis
+:command! Diff diffthis
 " grep書式自動挿入
 vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
@@ -277,6 +297,7 @@ nmap ga <Plug>(EasyAlign)
 " -------------------------------------------------------
 Plug 'tyru/caw.vim'
 " -------------------------------------------------------
+" コメントアウト
 nmap <C-K> <Plug>(caw:hatpos:toggle)
 vmap <C-K> <Plug>(caw:hatpos:toggle)
 
@@ -300,8 +321,14 @@ Plug 'tobyS/pdv', {'for': ['php']}
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
 " -------------------------------------------------------
+" tobyS/pdv
 let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
 nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
+
+" SirVer/ultisnips
+let g:UltiSnipsExpandTrigger="<Tab>"
+let g:UltiSnipsJumpForwardTrigger="<Tab>"
+let g:UltiSnipsJumpBackwardTrigger="<S-Tab>"
 
 " -------------------------------------------------------
 Plug 'osyo-manga/vim-brightest'
@@ -326,11 +353,11 @@ let g:ale_lint_on_text_changed = 'never'
 let g:ale_php_phpcs_standard = $HOME.'/.phpconf/phpcs/ruleset.xml'
 let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " [phpmdメモ]
-" codesize：循環的複雑度などコードサイズ関連部分を検出するルール
-" controversial：キャメルケースなど議論の余地のある部分を検出するルール
-" design：ソフトの設計関連の問題を検出するルール
-" naming：長すぎたり、短すぎたりする名前を検出するルール
-" unusedcode：使われていないコードを検出するルール
+" codesize      ： 循環的複雑度などコードサイズ関連部分を検出するルール
+" controversial ： キャメルケースなど議論の余地のある部分を検出するルール
+" design        ： ソフトの設計関連の問題を検出するルール
+" naming        ： 長すぎたり、短すぎたりする名前を検出するルール
+" unusedcode    ： 使われていないコードを検出するルール
 
 " -------------------------------------------------------
 " Plug 'Shougo/deoplete.nvim'
@@ -349,7 +376,9 @@ else
 endif
 let g:deoplete#enable_at_startup = 1
 let g:deoplete#enable_smart_case = 1
-let g:deoplete#auto_complete_start_length = 3
+let g:deoplete#auto_complete_start_length = 4
+let g:deoplete#disable_auto_complete=1
+let g:auto_complete_delay = 2000
 let g:deoplete#omni_patterns = {
   \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
   \ }
@@ -357,7 +386,7 @@ let g:deoplete#omni_patterns = {
 " -------------------------------------------------------
 Plug 'majutsushi/tagbar'
 " -------------------------------------------------------
-nmap <C-l> :TagbarToggle<CR>
+nmap <C-^> :TagbarToggle<CR>
 let g:tagbar_width = 50
 let g:tagbar_autoshowtag = 1
 let g:tagbar_type_php  = {
@@ -370,20 +399,6 @@ let g:tagbar_type_php  = {
 	\ 	'j:javascript functions:1'
 	\ ]
 	\ }
-
-" -------------------------------------------------------
-Plug 'Shougo/neosnippet'
-Plug 'Shougo/neosnippet-snippets'
-" -------------------------------------------------------
-let g:neosnippet#snippets_directory='~/.vim/bundle/vim-snippets/neosnippets'
-let g:neosnippet#enable_snipmate_compatibility = 1
-" dotfilesのphp.snipを適応するには
-" ln -s ~/dotfiles/.vim/bundle/vim-snippets/snippets/php.snip .vim/bundle/vim-snippets/snippets/php.snip
-"
-" 編集中に
-" :NeoSnippetEdit
-" で現在開いているファイルタイプのスニペットを編集できる
-" デフォルト通りなので<C-k>で利用可能
 
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
@@ -418,94 +433,89 @@ let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project"
 " # 別タブ
 nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
 
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-let g:airline#extensions#tabline#enabled = 1
-let g:airline_powerline_fonts = 1
-" let g:airline_left_sep = ''
-let g:airline_right_sep = ''
-let g:airline_theme = 'minimalist'
+" -------------------------------------------------------
+Plug 'itchyny/lightline.vim'
+Plug 'maximbaz/lightline-ale'
+" -------------------------------------------------------
+" airlineは色々機能付きすぎて重い
+set laststatus=2
 
-" GO書くときに乗り換える
-" " [vim-go] ==========================================
-" " 使い方
-" " http://qiita.com/koara-local/items/6c886eccfb459159c431
-" " NeoBundleインストール後に下記を実行
-" " :GoInstallBinaries
-" " filetype plugin indent on の記述がNeoBundle関連の記述の下に必要
-"
-" NeoBundle 'fatih/vim-go'
-"
-" let g:go_highlight_functions = 1
-" let g:go_highlight_methods = 1
-" let g:go_highlight_fields = 1
-" let g:go_highlight_types = 1
-" let g:go_highlight_operators = 1
-" let g:go_highlight_build_constraints = 1
-"
-"
-" " scratchウインドウが開かないように
-" set completeopt=menu
+" For Powerline
+let g:lightline = {
+	\ 'colorscheme': 'wombat' ,
+	\ 'active' : {
+	\   'left' : [ [ 'mode', 'paste' ],
+	\              [ 'fugitive', 'readonly', 'filename', 'modified' ] ],
+	\   'right': [ [ 'linter_errors', 'linter_warnings' ,'linter_ok' ],
+	\              [ 'lineinfo' ],
+	\              [ 'percent' ],
+	\              [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
+	\ },
+	\ 'separator'         : { 'left': '⮀', 'right': '⮂' },
+	\ 'subseparator'      : { 'left': '⮁', 'right': '⮃' },
+	\ 'component_function': {
+	\     'fugitive':       'LightlineFugitive',
+	\     'readonly':       'LightlineReadonly',
+	\     'modified':       'LightlineModified',
+	\ },
+	\ 'component_expand': {
+	\     'linter_warnings': 'lightline#ale#warnings',
+	\     'linter_errors'  : 'lightline#ale#errors',
+	\     'linter_ok'      : 'lightline#ale#ok',
+	\ },
+	\ 'component_type':{
+	\     'linter_warnings': 'warning',
+	\     'linter_errors'  : 'error',
+	\ }
+	\ }
 
+
+function! LightlineModified()
+	if &filetype == "help"
+		return ""
+	elseif &modified
+		return "+"
+	elseif &modifiable
+		return ""
+	else
+		return ""
+	endif
+endfunction
+
+function! LightlineReadonly()
+	if &filetype == "help"
+		return ""
+	elseif &readonly
+		return "⭤"
+	else
+		return ""
+	endif
+endfunction
+
+function! LightlineFugitive()
+	if exists("*fugitive#head")
+		let branch = fugitive#head()
+		return branch !=# '' ? '⭠ '.branch : ''
+	endif
+	return ''
+endfunction
+
+
+" maximbaz/lightline-ale
+let g:lightline#ale#indicator_warnings = "⚠ "
+let g:lightline#ale#indicator_errors   = "🚫  "
+let g:lightline#ale#indicator_ok       = "👍  "
 
 call plug#end()
-
-"----------------------------------------------------
-" Vim neosnippet settings
-" ----------------------------------------------------
-
-" neosnipets用のセッティング
-" Plugin key-mappings.
-imap <C-k> <Plug>(neosnippet_expand_or_jump)
-
-smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
-\ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-
-" For conceal markers.
-if has('conceal')
-  set conceallevel=2 concealcursor=niv
-endif
-
-"------------------------------------------------------
-" Common settings.
-"------------------------------------------------------
-
-" NeoBundleの前に書くと効かないらしい系
-syntax on
-
-" スペルチェック
-set spell
-set spelllang=en,cjk
-
-" Enable filetype plugins
-filetype plugin indent on
-
-" 全体対象にスペルチェック
-syntax spell toplevel
-" syntax spell notoplevel
-
-" ハイライト再セット
-hi clear SpellBad
-hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
-
-if version >= 800
-	set completeopt+=noselect,noinsert
-endif
 
 " [memo]
 " 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
 " <C-m>にキーバインドすると動かなくなる
 "
-" 2017/05/21
-" noecomplete+vimprocが大きいプロジェクトだとvimが段々と重たくなる為、AutoComplPopでvim本来の機能利用方向にシフト
-" Uniteも大層な使い方してないので高速で寄り若干リッチなFZFに関連機能を寄せた(vim-script/FuzzyFinderだと好きじゃない感じなのでvim-scriptで実装した)
-" 関数のアウトラインもunite-outlineではなくtagbarへ
 " 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
 " 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。
 
 " [便利コマンド]
-"
-" tag検索->ファイルオープン(XXXっていうクラスがさーって言われたら検索する用)
 " tag [検索したい名前]
-" (FazzyFinderで探したい)
-
+"   tag検索->ファイルオープン(XXXっていうクラスがさーって言われたら検索する用)
+"   (FazzyFinderで探したい)
