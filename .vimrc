@@ -18,7 +18,6 @@ set fileencoding=utf-8
 set fileformat=unix
 
 " 色関連
-colorscheme default
 set t_Co=256
 
 syntax on
@@ -80,6 +79,8 @@ set showmatch
 set synmaxcol=600
 " CursorHoldやcrash-recoveryのための待ち時間(default:4000)
 set updatetime=300
+" シンタックスハイライトつけるためにかかる時間の閾値
+set redrawtime=2000
 
 "行番号
 set number
@@ -91,10 +92,6 @@ let g:sql_type_default = 'mysql'
 
 " Enable filetype plugins
 filetype plugin indent on
-
-" ハイライト再セット
-hi clear SpellBad
-hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
 if version >= 800
 	set completeopt+=noselect,noinsert
@@ -117,7 +114,7 @@ vnoremap <silent> <C-p> "0p<CR>
 " 行末空白削除
 :command! Sdel s/ *$// | noh
 " 雑に打ってもイケるように
-nnoremap ; :
+" nnoremap ; :
 " exモードに入らない
 nnoremap Q <Nop>
 " recodingしない
@@ -277,6 +274,10 @@ endfunction
 call plug#begin('~/.vim/plugged')
 
 " -------------------------------------------------------
+Plug 'sickill/vim-monokai'
+" -------------------------------------------------------
+" カラースキーム
+" -------------------------------------------------------
 Plug 'airblade/vim-gitgutter'
 " -------------------------------------------------------
 " -------------------------------------------------------
@@ -359,29 +360,32 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " naming        ： 長すぎたり、短すぎたりする名前を検出するルール
 " unusedcode    ： 使われていないコードを検出するルール
 
-" -------------------------------------------------------
-" Plug 'Shougo/deoplete.nvim'
-" -------------------------------------------------------
-" pip3が必要。そしてneovimのPython3 interfaceが必要(?)
-" FYI: http://kaworu.jpn.org/vim/deoplete
-" pip install neovim # or
-" pip3 install neovim
 
-if has('nvim')
-	Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-else
-	Plug 'Shougo/deoplete.nvim'
-	Plug 'roxma/nvim-yarp'
-	Plug 'roxma/vim-hug-neovim-rpc'
+if version >= 800
+	" -------------------------------------------------------
+	" Plug 'Shougo/deoplete.nvim'
+	" -------------------------------------------------------
+	" pip3が必要。そしてneovimのPython3 interfaceが必要(?)
+	" FYI: http://kaworu.jpn.org/vim/deoplete
+	" pip install neovim # or
+	" pip3 install neovim
+
+	if has('nvim')
+		Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+	else
+		Plug 'Shougo/deoplete.nvim'
+		Plug 'roxma/nvim-yarp'
+		Plug 'roxma/vim-hug-neovim-rpc'
+	endif
+	let g:deoplete#enable_at_startup = 1
+	let g:deoplete#enable_smart_case = 1
+	let g:deoplete#auto_complete_start_length = 4
+	let g:deoplete#disable_auto_complete=1
+	let g:auto_complete_delay = 2000
+	let g:deoplete#omni_patterns = {
+	  \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+	  \ }
 endif
-let g:deoplete#enable_at_startup = 1
-let g:deoplete#enable_smart_case = 1
-let g:deoplete#auto_complete_start_length = 4
-let g:deoplete#disable_auto_complete=1
-let g:auto_complete_delay = 2000
-let g:deoplete#omni_patterns = {
-  \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
-  \ }
 
 " -------------------------------------------------------
 Plug 'majutsushi/tagbar'
@@ -400,9 +404,6 @@ let g:tagbar_type_php  = {
 	\ ]
 	\ }
 
-" -------------------------------------------------------
-Plug 'kmszk/CCSpellCheck.vim'
-" -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'szw/vim-tags'
 " -------------------------------------------------------
@@ -442,7 +443,7 @@ set laststatus=2
 
 " For Powerline
 let g:lightline = {
-	\ 'colorscheme': 'wombat' ,
+	\ 'colorscheme': 'powerline' ,
 	\ 'active' : {
 	\   'left' : [ [ 'mode', 'paste' ],
 	\              [ 'fugitive', 'readonly', 'filename', 'modified' ] ],
@@ -506,11 +507,25 @@ let g:lightline#ale#indicator_warnings = "⚠ "
 let g:lightline#ale#indicator_errors   = "🚫  "
 let g:lightline#ale#indicator_ok       = "👍  "
 
+" -------------------------------------------------------
+Plug 'kmszk/CCSpellCheck.vim'
+" -------------------------------------------------------
+
 call plug#end()
 
+" colorscheme
+colorscheme monokai
+" ハイライト再セット
+hi clear SpellBad
+hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+" netrwのDirectory
+hi clear Directory
+hi Directory ctermfg=81 gui=italic guifg=#66d9ef
+
 " [memo]
-" 内部的に<C-mを使っているっぽい？><C-m>はReturnだが、normalモードだとjと変わらないと思って
-" <C-m>にキーバインドすると動かなくなる
+" なにかのプラグインが内部的に<C-m>を使っているっぽい？
+" <C-m>はReturnだが、normalモードだとjと変わらないと思って
+" <C-m>にキーバインドするとナチュラルに死ぬパターンある
 "
 " 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
 " 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。

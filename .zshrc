@@ -57,8 +57,8 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           "(%F{green}%b%f%c%u)"
-zstyle ':vcs_info:*'     actionformats     '(%b|%a)'
+zstyle ':vcs_info:*'     formats           " git:(%F{green}%b%f%c%u)"
+zstyle ':vcs_info:*'     actionformats     ' git:(%b|%a)'
 
 # プロンプト
 PROMPT="${prompt_location}"'$vcs_info_msg_0_'" ${prompt_is_err}${promot_mark} "
