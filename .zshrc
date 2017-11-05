@@ -308,8 +308,7 @@ zplug "zsh-users/zsh-syntax-highlighting", defer:2
 # (If the defer tag is given 2 or above, run after compinit command)
 
 # ---------------------------------------------------
-# zplug "mafredri/zsh-async", from:github
-# zplug "sindresorhus/pure", use:pure.zsh, from:github, as:theme
+zplug "zsh-users/zsh-autosuggestions", defer:2
 # ---------------------------------------------------
 
 # Install plugins if there are plugins that have not been installed
