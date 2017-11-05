@@ -22,11 +22,11 @@ function sv() {
 			TO_SSH_HOST='dev'
 			;;
 		"vagrant" | "v" )
-			TERM_BG_COLOR='black'
+			TERM_BG_COLOR='navy'
 			TO_SSH_HOST='vagrant'
 			;;
 		"quit" | "q" )
-			TERM_BG_COLOR='black'
+			TERM_BG_COLOR='navy'
 			IS_CHANCELED=1
 			echo "Canceled"
 			;;

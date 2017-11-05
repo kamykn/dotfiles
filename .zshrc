@@ -25,10 +25,10 @@ autoload -U colors     ; colors
 # prompt -l
 
 # 名前@マシン名 プロンプト
-local promot_mark="%B%(!,#,$)%b"
-local prompt_location="%{$reset_color%}%{$fg[cyan]%}%B%~%b%{$reset_color%}"
-local prompt_is_err="%(?,,%F{red}!%f )"
-
+# 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
+# 背景 HSB: 色相232°彩度30% 明度19%
+local prompt_location="%F{cyan}%B%~%b%f"
+local promot_mark="%B%(?,%F{magenta},%F{red})%(!,#,❯)%b"
 
 
 # 右部分 [時間]
@@ -57,11 +57,13 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           " git:(%F{green}%b%f%c%u)"
-zstyle ':vcs_info:*'     actionformats     ' git:(%b|%a)'
+zstyle ':vcs_info:*'     formats           " (%F{green}%b%f%c%u)"
+zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
 # プロンプト
-PROMPT="${prompt_location}"'$vcs_info_msg_0_'" ${prompt_is_err}${promot_mark} "
+PROMPT="
+${prompt_location}"'$vcs_info_msg_0_'"
+${promot_mark} "
 
 # fzfでブランチ名絞込チェックアウト
 # ローカルブランチ
@@ -283,6 +285,43 @@ function cdrepo() {
 
 	cd ${selectedRepo}
 }
+
+##====================================================##
+##======================= zplug ======================##
+##====================================================##
+#
+# brew install zplug
+# In order to use zplug, please add the following to your .zshrc:
+export ZPLUG_HOME=/usr/local/opt/zplug
+source $ZPLUG_HOME/init.zsh
+
+# ---------------------------------------------------
+zplug "zsh-users/zsh-completions"
+# ---------------------------------------------------
+
+# ---------------------------------------------------
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
+# ---------------------------------------------------
+# Set the priority when loading
+# e.g., zsh-syntax-highlighting must be loaded
+# after executing compinit command and sourcing other plugins
+# (If the defer tag is given 2 or above, run after compinit command)
+
+# ---------------------------------------------------
+# zplug "mafredri/zsh-async", from:github
+# zplug "sindresorhus/pure", use:pure.zsh, from:github, as:theme
+# ---------------------------------------------------
+
+# Install plugins if there are plugins that have not been installed
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
+    fi
+fi
+
+# Then, source plugins and add commands to $PATH
+zplug load
 
 ##====================================================##
 ##================== 画像プレビュー ==================##
