@@ -213,11 +213,11 @@ command! FZFMru call fzf#run({
 " [Buffer] -------------------------------------------
 "
 command! FZFBuffer :call fzf#run({
-\   'source':  reverse(<sid>buflist()),
-\   'sink':    function('<sid>bufopen'),
-\   'options': '+m',
-\   'down':    len(<sid>buflist()) + 2
-\ })<CR>
+			\   'source':  reverse(<sid>buflist()),
+			\   'sink':    function('<sid>bufopen'),
+			\   'options': '+m',
+			\   'down':    len(<sid>buflist()) + 2
+			\ })<CR>
 
 
 function! s:buflist()
@@ -275,6 +275,8 @@ call plug#begin('~/.vim/plugged')
 
 " -------------------------------------------------------
 Plug 'sickill/vim-monokai'
+Plug 'sjl/badwolf'
+Plug 'tomasr/molokai'
 " -------------------------------------------------------
 " カラースキーム
 " -------------------------------------------------------
@@ -504,8 +506,8 @@ endfunction
 
 " maximbaz/lightline-ale
 let g:lightline#ale#indicator_warnings = "⚠ "
-let g:lightline#ale#indicator_errors   = "🚫  "
-let g:lightline#ale#indicator_ok       = "👍  "
+let g:lightline#ale#indicator_errors   = "☓"
+let g:lightline#ale#indicator_ok       = ""
 
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
@@ -513,14 +515,55 @@ Plug 'kmszk/CCSpellCheck.vim'
 
 call plug#end()
 
+"------------------------------------------------------
 " colorscheme
-colorscheme monokai
-" ハイライト再セット
+"------------------------------------------------------
+colorscheme badwolf
+
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
-" netrwのDirectory
-hi clear Directory
+hi clear MatchParen
+hi link MatchParen Statement
+hi clear SpellCap " & ALE
+hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+hi clear Directory " netrwのDirectory
 hi Directory ctermfg=81 gui=italic guifg=#66d9ef
+hi clear Search
+hi Search ctermfg=0 ctermbg=yellow guibg=#000000 guibg=yellow
+
+hi clear String
+hi String ctermfg=186 guifg=#e6db74
+hi clear SpecialChar
+hi SpecialChar ctermfg=208 guifg=#ff8c00
+hi clear PreProc
+hi link PreProc SpecialChar
+hi clear vimNotation
+hi link vimNotation SpecialChar
+
+hi clear Statement
+hi Statement ctermfg=197 guifg=#f92672
+hi clear Type
+hi link Type Statement
+hi clear Conditional
+hi link Conditional Statement
+hi clear Structure
+hi link Structure Statement
+
+
+" カーソル下のhighlight情報を表示する {{{
+function! s:get_syn_id(transparent)
+    let synid = synID(line('.'), col('.'), 1)
+    return a:transparent ? synIDtrans(synid) : synid
+endfunction
+function! s:get_syn_name(synid)
+    return synIDattr(a:synid, 'name')
+endfunction
+function! s:get_highlight_info()
+    execute "highlight " . s:get_syn_name(s:get_syn_id(0))
+    execute "highlight " . s:get_syn_name(s:get_syn_id(1))
+endfunction
+command! HighlightInfo call s:get_highlight_info()
+" }}}
 
 " [memo]
 " なにかのプラグインが内部的に<C-m>を使っているっぽい？
