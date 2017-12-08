@@ -1,3 +1,7 @@
+" vim: foldmethod=marker
+" vim: foldcolumn=3
+" vim: foldlevel=0
+
 " -----------------------------------------------------
 "                     kmszk .vimrc
 " -----------------------------------------------------
@@ -5,13 +9,20 @@
 " vim8.0+ required
 " brew upgrade vim --with-lua --with-python3
 "
+" Font Install
+" https://github.com/miiton/Cica
+"
+" # memo
+" ## fold
+" za トグルして開く
+" zr 全開き
+" zm 全閉じ
+
 "------------------------------------------------------
 " Common Settings.
 "------------------------------------------------------
-"
-" Font Install
-" https://github.com/miiton/Cica
 
+" {{{
 " 文字コード設定
 set encoding=utf-8
 set fileencoding=utf-8
@@ -19,6 +30,7 @@ set fileformat=unix
 
 " 色関連
 set t_Co=256
+set background=dark
 
 syntax on
 
@@ -51,8 +63,8 @@ set noswapfile
 set noundofile
 " XXX~を作らない
 set nobackup
-" カッコのハイライト1表示、0非表示(効いていないっぽい)
-let loaded_matchparen = 0
+" カッコのハイライト1非表示
+" let loaded_matchparen = 1
 " インクリメンタルサーチ 検索中にハイライトされる
 set incsearch
 " 検索時に大文字小文字を無視する
@@ -80,12 +92,17 @@ set synmaxcol=600
 " CursorHoldやcrash-recoveryのための待ち時間(default:4000)
 set updatetime=300
 " シンタックスハイライトつけるためにかかる時間の閾値
-set redrawtime=2000
+set redrawtime=4000
 
 "行番号
 set number
 :command! Nu set relativenumber
 :command! NU set relativenumber!
+
+" モードラインを有効にする
+set modeline
+" 3行目までをモードラインとして検索する
+set modelines=3
 
 " MySQLのsyntax highlight
 let g:sql_type_default = 'mysql'
@@ -97,10 +114,22 @@ if version >= 800
 	set completeopt+=noselect,noinsert
 endif
 
+" 前回開いたファイルのundo
+if has('persistent_undo')
+    let undo_dir = expand('$HOME/.vim/undo_dir')
+    if !isdirectory(undo_dir)
+        call mkdir(undo_dir, "", 0700)
+    endif
+    set undodir=$HOME/.vim/undo_dir
+    set undofile
+endif
+" }}}
+
 "------------------------------------------------------
 " misc alias
 "------------------------------------------------------
 "
+" {{{
 " Vimrcへのショートカット
 :command! Vrc tabe | e ~/.vimrc
 :command! Src source ~/.vimrc
@@ -114,18 +143,45 @@ vnoremap <silent> <C-p> "0p<CR>
 " 行末空白削除
 :command! Sdel s/ *$// | noh
 " 雑に打ってもイケるように
-" nnoremap ; :
+nnoremap ; :
 " exモードに入らない
 nnoremap Q <Nop>
 " recodingしない
 nnoremap q <Nop>
 " ESCキー2度押しでハイライトの切り替え
 nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
+" insert中にC-cでSEGVで死ぬことがあったため
+inoremap <C-c> <C-[>
+" Session 作成
+:command! Mks mks! ~/.vim.session
+" Session 復帰
+:command! Ss source ~/.vim.session
+
+" Ex-modeのカーソル移動をreadline風に
+cnoremap <C-a> <Home>
+" 一文字戻る
+cnoremap <C-b> <Left>
+" カーソルの下の文字を削除
+cnoremap <C-d> <Del>
+" 行末へ移動
+cnoremap <C-e> <End>
+" 一文字進む
+cnoremap <C-f> <Right>
+" コマンドライン履歴を一つ進む
+cnoremap <C-n> <Down>
+" コマンドライン履歴を一つ戻る
+cnoremap <C-p> <Up>
+" 前の単語へ移動
+cnoremap <M-b> <S-Left>
+" 次の単語へ移動
+cnoremap <M-f> <S-Right>
+" }}}
 
 "------------------------------------------------------
 " autocmd
 "------------------------------------------------------
 
+" {{{
 "前回閉じたときのカーソルの位置を保存
 augroup vimrcEx
   au BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
@@ -141,41 +197,44 @@ augroup HighlightTrailingSpaces
   autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
 augroup END
 
-augroup PHP
-  autocmd!
-  " autocmd FileType php set makeprg=php\ -l\ %
-  " set errorformat=%m\ in\ %f\ on\ line\ %l
-  " php -lの構文チェックでエラーがなければ「No syntax errors」の一行だけ出力される
-  autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | endif
-augroup END
-
-function! PhpLint()
-	let l:result = system('php -l ' . expand("%"))
-	let l:resultList = split(l:result, "\n")
-
-	if (match(l:resultList, 'No syntax errors detected in') != -1)
-		call setqflist([], 'r')
-		return
-	endif
-
-	let l:errors = []
-	for r in l:resultList
-		let info = {'filename': expand("%")}
-		"echo match(r, "\von line ([0-9]+)\C")
-		"echo substitute(match(r, "\von line ([0-9]+)\C"), "([0-9]+)", "\n")
-		" let info.lnum = substitute(match(r, "\von line ([0-9]+)\C", '\1'), "([0-9]+)", "\n")
-		let info.text = r
-		call add(errors, info)
-		break
-	endfor
-
-	call setqflist(l:errors, 'r')
-endfunction
+" QuickFix書き換えてうざいので
+" augroup PHP
+"   autocmd!
+"   " autocmd FileType php set makeprg=php\ -l\ %
+"   " set errorformat=%m\ in\ %f\ on\ line\ %l
+"   " php -lの構文チェックでエラーがなければ「No syntax errors」の一行だけ出力される
+"   autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | endif
+" augroup END
+"
+" function! PhpLint()
+" 	let l:result = system('php -l ' . expand("%"))
+" 	let l:resultList = split(l:result, "\n")
+"
+" 	if (match(l:resultList, 'No syntax errors detected in') != -1)
+" 		call setqflist([], 'r')
+" 		return
+" 	endif
+"
+" 	let l:errors = []
+" 	for r in l:resultList
+" 		let info = {'filename': expand("%")}
+" 		"echo match(r, "\von line ([0-9]+)\C")
+" 		"echo substitute(match(r, "\von line ([0-9]+)\C"), "([0-9]+)", "\n")
+" 		" let info.lnum = substitute(match(r, "\von line ([0-9]+)\C", '\1'), "([0-9]+)", "\n")
+" 		let info.text = r
+" 		call add(errors, info)
+" 		break
+" 	endfor
+"
+" 	call setqflist(l:errors, 'r')
+" endfunction
+" }}}
 
 "------------------------------------------------------
 " FZF
 "------------------------------------------------------
 "
+" {{{
 " [初回インストールコマンド]
 " git clone https://github.com/junegunn/fzf.git ~/.fzf
 "
@@ -187,11 +246,15 @@ endfunction
 set rtp+=~/.fzf
 
 nnoremap <C-b> :Fb<CR>
-nnoremap <C-p> :FZFFileList<CR>
+nnoremap <C-f> :FZFFileList<CR>
+nnoremap <C-h> :FZFMru<CR>
+
+nnoremap <C-]> :FZFFileList<CR>
 
 command! Fq FZFQuickFix
 command! Fmru FZFMru
 command! Fb FZFBuffer
+command! Ft FZFTagList
 
 " [Replace of Ctrl-p] --------------------------------
 " 除外したいファイルが有れば
@@ -200,7 +263,8 @@ command! Fb FZFBuffer
 
 command! FZFFileList call fzf#run({
 			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
-			\ 'sink': 'e'})
+			\ 'sink': 'e',
+			\ 'down':    '40%'})
 
 " [MRU] ----------------------------------------------
 "
@@ -261,10 +325,23 @@ function! s:qf_sink(line)
 	execute 'tabe ' . parts[0]
 endfunction
 
+" [tag] -----------------------------------------
+
+function! s:fzf_tag(fzf_tags_file_full_path)
+	let s:fzf_tags_file_full_path = a:fzf_tags_file_full_path
+	command! FZFTagList call fzf#run({
+				\ 'source': "cat " . s:fzf_tags_file_full_path . " | awk {'print $1'} | sort -u | grep -v '^[!\(\=]'",
+				\ 'sink': 'tag',
+				\ 'down':    '40%'})
+endfunction
+
+" }}}
 
 "------------------------------------------------------
 " Vim Plug
 "------------------------------------------------------
+
+" {{{
 " [DownLoad]
 " $ curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 "
@@ -275,8 +352,7 @@ call plug#begin('~/.vim/plugged')
 
 " -------------------------------------------------------
 Plug 'sickill/vim-monokai'
-Plug 'sjl/badwolf'
-Plug 'tomasr/molokai'
+Plug 'gorodinskiy/vim-coloresque'
 " -------------------------------------------------------
 " カラースキーム
 " -------------------------------------------------------
@@ -308,42 +384,40 @@ vmap <C-K> <Plug>(caw:hatpos:toggle)
 Plug 'tpope/vim-surround'
 " -------------------------------------------------------
 " -------------------------------------------------------
+Plug 'rhysd/clever-f.vim'
+" -------------------------------------------------------
+let g:clever_f_smart_case = 1
+" -------------------------------------------------------
 Plug 'tpope/vim-endwise'
 " -------------------------------------------------------
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
 
-" -------------------------------------------------------
-Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
-" -------------------------------------------------------
-let g:php_localvarcheck_enable = 1
-let g:php_localvarcheck_global = 0
+" " -------------------------------------------------------
+" Plug 'tobyS/vmustache'
+" Plug 'tobyS/pdv', {'for': ['php']}
+" Plug 'SirVer/ultisnips'
+" Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
+" " -------------------------------------------------------
+" " tobyS/pdv
+" let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
+" nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
+"
+" " SirVer/ultisnips
+" let g:UltiSnipsExpandTrigger="<Tab>"
+" let g:UltiSnipsJumpForwardTrigger="<Tab>"
+" let g:UltiSnipsJumpBackwardTrigger="<S-Tab>"
 
-" -------------------------------------------------------
-Plug 'tobyS/vmustache'
-Plug 'tobyS/pdv', {'for': ['php']}
-Plug 'SirVer/ultisnips'
-Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
-" -------------------------------------------------------
-" tobyS/pdv
-let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
-nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
-
-" SirVer/ultisnips
-let g:UltiSnipsExpandTrigger="<Tab>"
-let g:UltiSnipsJumpForwardTrigger="<Tab>"
-let g:UltiSnipsJumpBackwardTrigger="<S-Tab>"
-
-" -------------------------------------------------------
-Plug 'osyo-manga/vim-brightest'
-" -------------------------------------------------------
-" 画面内のカーソル下の単語と同じ単語をハイライト
-let g:brightest#enable_on_CursorHold = 1
-let g:brightest#pattern = '\k\+'
-let g:brightest#enable_filetypes = {
-\   "_"   : 0,
-\   "vim" : 1,
-\   "php" : 1,
-\}
+" " -------------------------------------------------------
+" Plug 'osyo-manga/vim-brightest'
+" " -------------------------------------------------------
+" " 画面内のカーソル下の単語と同じ単語をハイライト
+" let g:brightest#enable_on_CursorHold = 1
+" let g:brightest#pattern = '\k\+'
+" let g:brightest#enable_filetypes = {
+" \   "_"   : 0,
+" \   "vim" : 1,
+" \   "php" : 1,
+" \}
 
 " -------------------------------------------------------
 Plug 'w0rp/ale'
@@ -406,35 +480,54 @@ let g:tagbar_type_php  = {
 	\ ]
 	\ }
 
-" -------------------------------------------------------
-Plug 'szw/vim-tags'
-" -------------------------------------------------------
-" :TagsGenerate!
-"
-" # Universal Ctagsをインストール
-" brew tap universal-ctags/universal-ctags
-" brew install --HEAD universal-ctags
-"
-" かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
-" brew uninstall ctags
-"
-" [旧メモ]
-" Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
-" FYI:https://gist.github.com/nazgob/1570678
-"
-command! Tagrm !rm ~/.tags
-command! Tag TagsGenerate!
-set tags+=~/.tags
-" 保存時に裏で自動でctagsを作成する
-let g:vim_tags_auto_generate = 0
-" tag保存メインファイル名
-let g:vim_tags_main_file = '.tags'
-" tagファイルのパス
-let g:vim_tags_extension = '~'
-" 細かいオプションは.ctagsにて
-let g:vim_tags_project_tags_command = "ctags -f ~/.tags -R ~/project"
-" # 別タブ
-nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
+" カレントディレクトリがgitのbranch上でのみTagを有効化
+" gitのrootディレクトリの.gitにタグファイルを入れてしまう
+let s:is_on_git_branch = system('git rev-parse &>/dev/null; echo $?')
+if s:is_on_git_branch == 0 
+	" -------------------------------------------------------
+	Plug 'szw/vim-tags'
+	" -------------------------------------------------------
+	" :TagsGenerate!
+	"
+	" # Universal Ctagsをインストール
+	" brew tap universal-ctags/universal-ctags
+	" brew install --HEAD universal-ctags
+	"
+	" かつてのctagsにはおさらば(Macにはデフォルトで入ってる)
+	" brew uninstall ctags
+	"
+	" [旧メモ]
+	" Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
+	" FYI:https://gist.github.com/nazgob/1570678
+	"
+
+	let s:git_root_dir = substitute(system('git rev-parse --show-toplevel'), '\n\+$', '', '')
+	let s:git_ignore_dir = ".git"
+	let s:tags_file_name = ".tags"
+	let s:tags_file_full_path = s:git_root_dir . "/" . s:git_ignore_dir . "/" . s:tags_file_name
+
+	execute "set tags+=" . s:tags_file_full_path
+	" 保存時に裏で自動でctagsを作成する
+	let g:vim_tags_auto_generate = 0
+	" tag保ブ
+	let g:vim_tags_main_file = s:tags_file_name
+	" tagファイルのパス
+	let g:vim_tags_extension = s:git_root_dir . '/' . s:git_ignore_dir
+	" 細かいオプションは.ctagsにて
+	let g:vim_tags_project_tags_command = "ctags -f " .  s:tags_file_full_path . " -R " . s:git_root_dir
+	" 別タブで開けるようにremap
+	nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
+
+	command! Tagrm execute("!rm -i " . s:tags_file_full_path)
+	command! Tag   TagsGenerate!
+
+	" FZFとのタグ連携
+	call s:fzf_tag(s:tags_file_full_path)
+else 
+	let s:err_msg = 'You are currently on not Git top level dir.'
+	command! Tagrm echo s:err_msg
+	command! Tag   echo s:err_msg
+endif
 
 " -------------------------------------------------------
 Plug 'itchyny/lightline.vim'
@@ -509,48 +602,39 @@ let g:lightline#ale#indicator_warnings = "⚠ "
 let g:lightline#ale#indicator_errors   = "☓"
 let g:lightline#ale#indicator_ok       = ""
 
+" " -------------------------------------------------------
+" Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
+" " -------------------------------------------------------
+" let g:php_localvarcheck_enable = 1
+" let g:php_localvarcheck_global = 0
+
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
 " -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'kmszk/skyhawk'
+" -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'kmszk/skyknight'
+" -------------------------------------------------------
 
 call plug#end()
+" }}}
 
-"------------------------------------------------------
+" -------------------------------------------------------
 " colorscheme
-"------------------------------------------------------
-colorscheme badwolf
+" -------------------------------------------------------
+
+" {{{
+" colorscheme skyhawk
+colorscheme skyknight
 
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
-hi clear MatchParen
-hi link MatchParen Statement
 hi clear SpellCap " & ALE
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
-hi clear Directory " netrwのDirectory
-hi Directory ctermfg=81 gui=italic guifg=#66d9ef
-hi clear Search
-hi Search ctermfg=0 ctermbg=yellow guibg=#000000 guibg=yellow
 
-hi clear String
-hi String ctermfg=186 guifg=#e6db74
-hi clear SpecialChar
-hi SpecialChar ctermfg=208 guifg=#ff8c00
-hi clear PreProc
-hi link PreProc SpecialChar
-hi clear vimNotation
-hi link vimNotation SpecialChar
-
-hi clear Statement
-hi Statement ctermfg=197 guifg=#f92672
-hi clear Type
-hi link Type Statement
-hi clear Conditional
-hi link Conditional Statement
-hi clear Structure
-hi link Structure Statement
-
-
-" カーソル下のhighlight情報を表示する {{{
+" カーソル下のhighlight情報を表示する 
 function! s:get_syn_id(transparent)
     let synid = synID(line('.'), col('.'), 1)
     return a:transparent ? synIDtrans(synid) : synid
@@ -565,15 +649,32 @@ endfunction
 command! HighlightInfo call s:get_highlight_info()
 " }}}
 
-" [memo]
+" -------------------------------------------------------
+" memo
+" -------------------------------------------------------
+
+" {{{
 " なにかのプラグインが内部的に<C-m>を使っているっぽい？
 " <C-m>はReturnだが、normalモードだとjと変わらないと思って
 " <C-m>にキーバインドするとナチュラルに死ぬパターンある
 "
 " 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
 " 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。
+"
+" session もfzfで複数から絞りたい
 
 " [便利コマンド]
 " tag [検索したい名前]
 "   tag検索->ファイルオープン(XXXっていうクラスがさーって言われたら検索する用)
 "   (FazzyFinderで探したい)
+" -> :Ftを実装した
+
+" 重いメモ
+" ## カーソル下の変数をハイライトする機能が重い
+" - ファイルが長すぎてmatchを探す時間が長すぎるのかと
+" ## スペルチェック
+" - ハイライトされない問題
+" - redrawtimeを突き抜ける
+"
+" }}}
+
