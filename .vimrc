@@ -248,13 +248,12 @@ set rtp+=~/.fzf
 nnoremap <C-b> :Fb<CR>
 nnoremap <C-f> :FZFFileList<CR>
 nnoremap <C-h> :FZFMru<CR>
+" nnoremap <C-]> :FZFFileList<CR>
 
-nnoremap <C-]> :FZFFileList<CR>
-
-command! Fq FZFQuickFix
+command! Fq   FZFQuickFix
 command! Fmru FZFMru
-command! Fb FZFBuffer
-command! Ft FZFTagList
+command! Fb   FZFBuffer
+command! Ft   FZFTagList
 
 " [Replace of Ctrl-p] --------------------------------
 " 除外したいファイルが有れば
@@ -326,11 +325,15 @@ function! s:qf_sink(line)
 endfunction
 
 " [tag] -----------------------------------------
-
+"
 function! s:fzf_tag(fzf_tags_file_full_path)
 	let s:fzf_tags_file_full_path = a:fzf_tags_file_full_path
+
+	" https://stackoverflow.com/questions/11532157/unix-removing-duplicate-lines-without-sorting
+	" sort -u の代わりに awk '!x[$0]++' を使うことで逐次処理を維持
+	" awk '!x[$1]++ {print $1}' は awk {'print $1'} | awk '!x[$0]++'と一緒 
 	command! FZFTagList call fzf#run({
-				\ 'source': "cat " . s:fzf_tags_file_full_path . " | awk {'print $1'} | sort -u | grep -v '^[!\(\=]'",
+				\ 'source': "cat " . s:fzf_tags_file_full_path . " | awk '!x[$1]++ {print $1}' |  grep -v '^[!\(\=]'",
 				\ 'sink': 'tag',
 				\ 'down':    '40%'})
 endfunction
@@ -367,7 +370,7 @@ Plug 'junegunn/vim-easy-align'
 " 選んだ範囲で整える
 xmap <Space> <Plug>(EasyAlign)*<Space>
 xmap ,  <Plug>(EasyAlign)*,
-xmap g= <Plug>(EasyAlign)*=
+xmap = <Plug>(EasyAlign)*=
 " Start interactive EasyAlign in visual mode (e.g. vipga)
 xmap ga <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
@@ -392,20 +395,33 @@ Plug 'tpope/vim-endwise'
 " -------------------------------------------------------
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
 
-" " -------------------------------------------------------
-" Plug 'tobyS/vmustache'
-" Plug 'tobyS/pdv', {'for': ['php']}
-" Plug 'SirVer/ultisnips'
-" Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
-" " -------------------------------------------------------
-" " tobyS/pdv
-" let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
-" nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
-"
-" " SirVer/ultisnips
-" let g:UltiSnipsExpandTrigger="<Tab>"
-" let g:UltiSnipsJumpForwardTrigger="<Tab>"
-" let g:UltiSnipsJumpBackwardTrigger="<S-Tab>"
+" -------------------------------------------------------
+Plug 'LeafCage/yankround.vim'
+" -------------------------------------------------------
+nmap p <Plug>(yankround-p)
+xmap p <Plug>(yankround-p)
+nmap P <Plug>(yankround-P)
+nmap gp <Plug>(yankround-gp)
+xmap gp <Plug>(yankround-gp)
+nmap gP <Plug>(yankround-gP)
+nmap <C-p> <Plug>(yankround-prev)
+nmap <C-n> <Plug>(yankround-next)
+
+" -------------------------------------------------------
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets' " Snippets are separated from the engine(ultisnips).
+Plug 'tobyS/vmustache', {'for': ['php']}
+Plug 'tobyS/pdv', {'for': ['php']}
+" -------------------------------------------------------
+" SirVer/ultisnips
+let g:UltiSnipsExpandTrigger       = "<Tab>"
+let g:UltiSnipsJumpForwardTrigger  = "<Tab>"
+let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
+
+" tobyS/pdv
+let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
+nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
+
 
 " " -------------------------------------------------------
 " Plug 'osyo-manga/vim-brightest'
