@@ -114,15 +114,15 @@ if version >= 800
 	set completeopt+=noselect,noinsert
 endif
 
-" 前回開いたファイルのundo
-if has('persistent_undo')
-    let undo_dir = expand('$HOME/.vim/undo_dir')
-    if !isdirectory(undo_dir)
-        call mkdir(undo_dir, "", 0700)
-    endif
-    set undodir=$HOME/.vim/undo_dir
-    set undofile
-endif
+" " 前回開いたファイルのundo
+" if has('persistent_undo')
+"     let undo_dir = expand('$HOME/.vim/undo_dir')
+"     if !isdirectory(undo_dir)
+"         call mkdir(undo_dir, "", 0700)
+"     endif
+"     set undodir=$HOME/.vim/undo_dir
+"     set undofile
+" endif
 " }}}
 
 "------------------------------------------------------
@@ -139,7 +139,7 @@ endif
 " grep書式自動挿入
 vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
-vnoremap <silent> <C-p> "0p<CR>
+vnoremap <silent> <C-p> "0p
 " 行末空白削除
 :command! Sdel s/ *$// | noh
 " 雑に打ってもイケるように
@@ -148,6 +148,8 @@ nnoremap ; :
 nnoremap Q <Nop>
 " recodingしない
 nnoremap q <Nop>
+" さっき挿入した文字を挿入してinsert モードを終了しない
+nnoremap <C-@> <Nop>
 " ESCキー2度押しでハイライトの切り替え
 nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
 " insert中にC-cでSEGVで死ぬことがあったため
@@ -485,6 +487,9 @@ Plug 'majutsushi/tagbar'
 nmap <C-^> :TagbarToggle<CR>
 let g:tagbar_width = 50
 let g:tagbar_autoshowtag = 1
+let g:tagbar_autofocus = 1
+let g:tagbar_autoclose = 1
+
 let g:tagbar_type_php  = {
 	\ 'ctagstype' : 'php',
 	\ 'kinds'     : [
@@ -684,6 +689,8 @@ command! HighlightInfo call s:get_highlight_info()
 "   tag検索->ファイルオープン(XXXっていうクラスがさーって言われたら検索する用)
 "   (FazzyFinderで探したい)
 " -> :Ftを実装した
+"
+"  tagを選択した後のファイル選択もfzf化したい
 
 " 重いメモ
 " ## カーソル下の変数をハイライトする機能が重い

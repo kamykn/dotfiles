@@ -1,5 +1,5 @@
 # .zshrc をコンパイルして .zshrc.zwc を生成するコマンド
-zcompile .zshrc
+zcompile ~/.zshrc
 
 export LANG=ja_JP.UTF-8
 
@@ -96,7 +96,10 @@ fbranchcp() {
 	echo $(echo "$branch" | sed "s/.* //" ) | tr -d "\n" `` | pbcopy; pbpaste ; echo '';
 }
 
+# ブランチ名を出力
 alias brname='git symbolic-ref --short HEAD'
+
+alias cdgitroot='cd `git rev-parse --show-toplevel`'
 
 
 ##========================================================##
@@ -320,6 +323,9 @@ zplug "zsh-users/zsh-completions"
 
 # ---------------------------------------------------
 zplug "zsh-users/zsh-autosuggestions", defer:2
+# ---------------------------------------------------
+# ---------------------------------------------------
+zplug "supercrabtree/k"
 # ---------------------------------------------------
 
 # Install plugins if there are plugins that have not been installed
