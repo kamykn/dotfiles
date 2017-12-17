@@ -88,7 +88,7 @@ fbrm() {
 }
 
 
-# ローカルブランチ
+# ローカルブランチ名コピー
 fbranchcp() {
 	local branches branch
 	branches=$(git branch) &&
@@ -314,7 +314,7 @@ zplug "zsh-users/zsh-completions"
 # ---------------------------------------------------
 
 # ---------------------------------------------------
-# zplug "zsh-users/zsh-syntax-highlighting", defer:2
+zplug "zsh-users/zsh-syntax-highlighting", defer:2
 # ---------------------------------------------------
 # Set the priority when loading
 # e.g., zsh-syntax-highlighting must be loaded

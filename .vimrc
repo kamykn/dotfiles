@@ -21,12 +21,14 @@
 "------------------------------------------------------
 " Common Settings.
 "------------------------------------------------------
-
+"
 " {{{
 " 文字コード設定
 set encoding=utf-8
 set fileencoding=utf-8
 set fileformat=unix
+
+scriptencoding utf-8
 
 " 色関連
 set t_Co=256
@@ -306,18 +308,18 @@ command! FZFQuickFix call fzf#run({
 
 " QuickFix形式にqfListから文字列を生成する
 function! Get_qf_text_list()
-	let qflist = getqflist()
-	let textList = []
-	for i in qflist
+	let s:qflist = getqflist()
+	let s:textList = []
+	for i in s:qflist
 		if i.valid
-			let textList = add(textList, printf('%s|%d| %s',
+			let s:textList = add(s:textList, printf('%s|%d| %s',
 				\		bufname(i.bufnr),
 				\		i.lnum,
 				\		matchstr(i.text, '\s*\zs.*\S')
 				\	))
 		endif
 	endfor
-	return textList
+	return s:textList
 endfunction
 
 " QuickFix形式のstringからtabeに渡す
@@ -436,7 +438,12 @@ nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
 " \   "vim" : 1,
 " \   "php" : 1,
 " \}
-
+"
+"
+"
+" -------------------------------------------------------
+Plug 'itchyny/vim-cursorword'
+" -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'w0rp/ale'
 " -------------------------------------------------------
@@ -544,7 +551,7 @@ if s:is_on_git_branch == 0
 
 	" FZFとのタグ連携
 	call s:fzf_tag(s:tags_file_full_path)
-else 
+else
 	let s:err_msg = 'You are currently on not Git top level dir.'
 	command! Tagrm echo s:err_msg
 	command! Tag   echo s:err_msg
