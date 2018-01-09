@@ -1,3 +1,17 @@
+# vim: foldmethod=marker
+# vim: foldcolumn=3
+# vim: foldlevel=0
+
+#     ___       ___       ___       ___       ___
+#    /\__\     /\__\     /\  \     /\  \     /\__\
+#   /:/ _/_   /::L_L_   /::\  \   _\:\  \   /:/ _/_
+#  /::-"\__\ /:/L:\__\ /\:\:\__\ /::::\__\ /::-"\__\
+#  \;:;-",-" \/_/:/  / \:\:\/__/ \::;;/__/ \;:;-",-"
+#   |:|  |     /:/  /   \::/  /   \:\__\    |:|  |
+#    \|__|     \/__/     \/__/     \/__/     \|__|
+# 
+
+# {{{
 # .zshrc をコンパイルして .zshrc.zwc を生成するコマンド
 zcompile ~/.zshrc
 
@@ -5,6 +19,7 @@ export LANG=ja_JP.UTF-8
 
 alias vi='vim'
 alias vimupdate='brew upgrade vim --with-lua --with-python3'
+#}}}
 
 ##========================================================##
 ##================== キーバインドの設定 ==================##
@@ -93,11 +108,12 @@ fbranchcp() {
 	local branches branch
 	branches=$(git branch) &&
 	branch=$(echo "$branches" | fzf +s +m) &&
-	echo $(echo "$branch" | sed "s/.* //" ) | tr -d "\n" `` | pbcopy; pbpaste ; echo '';
+	echo $(echo "$branch" | sed "s/.* //" ) | tr -d "\n" '' | pbcopy; pbpaste ; echo '';
 }
 
 # ブランチ名を出力
 alias brname='git symbolic-ref --short HEAD'
+alias cpbrname='git symbolic-ref --short HEAD  | tr -d "\n" '' | pbcopy'
 
 alias cdgitroot='cd `git rev-parse --show-toplevel`'
 
@@ -226,7 +242,7 @@ ffind() {
 		FIND_OPTION=" -type d -name '.*' -prune -or -not -name '.*'"
 	fi
 
-	eval find . "*" "${FIND_OPTION}" | fzf
+	eval find . "*" "${FIND_OPTION}" | fzf --multi
 }
 
 # git commit browser
@@ -351,7 +367,6 @@ alias ql='qlmanage -p "$@" >& /dev/null'
 ##============ sql結果をcsvにコピペできる ============##
 ##====================================================##
 
-
 alias qr2cp="pbpaste | sed '/+--/d' | sed -e 's/|//' | sed -e 's/|\$//' | sed -e '2,$ s/ //g' | tr '|' '\t'| pbcopy"
 
 ##====================================================##
@@ -367,5 +382,12 @@ PATH="/usr/local/bin:${PATH}"
 
 PATH="${PATH}:$HOME/.cargo/bin"
 
+
+function command_not_found_handler(){
+	echo -e 	"\e[31m                        __            __ \n" \
+				".--.--.--.---.-.-----.|  |_.-----.--|  |\n" \
+				"|  |  |  |  _  |__ --||   _|  -__|  _  |\n" \
+				"|________|___._|_____||____|_____|_____|\n"
+}
 
 export PATH

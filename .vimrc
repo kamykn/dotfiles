@@ -2,9 +2,14 @@
 " vim: foldcolumn=3
 " vim: foldlevel=0
 
-" -----------------------------------------------------
-"                     kmszk .vimrc
-" -----------------------------------------------------
+"     ___       ___       ___       ___       ___
+"    /\__\     /\__\     /\  \     /\  \     /\__\
+"   /:/ _/_   /::L_L_   /::\  \   _\:\  \   /:/ _/_
+"  /::-"\__\ /:/L:\__\ /\:\:\__\ /::::\__\ /::-"\__\
+"  \;:;-",-" \/_/:/  / \:\:\/__/ \::;;/__/ \;:;-",-"
+"   |:|  |     /:/  /   \::/  /   \:\__\    |:|  |
+"    \|__|     \/__/     \/__/     \/__/     \|__|
+"
 "
 " vim8.0+ required
 " brew upgrade vim --with-lua --with-python3
@@ -374,7 +379,7 @@ Plug 'junegunn/vim-easy-align'
 " 選んだ範囲で整える
 xmap <Space> <Plug>(EasyAlign)*<Space>
 xmap ,  <Plug>(EasyAlign)*,
-xmap = <Plug>(EasyAlign)*=
+" xmap = <Plug>(EasyAlign)*= // インデント直すのに使ってる
 " Start interactive EasyAlign in visual mode (e.g. vipga)
 xmap ga <Plug>(EasyAlign)
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
@@ -444,6 +449,17 @@ nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
 " -------------------------------------------------------
 Plug 'itchyny/vim-cursorword'
 " -------------------------------------------------------
+let g:cursorword = 0
+command! Tglcw call s:tglCursorWord()
+
+function s:tglCursorWord()
+	if g:cursorword
+		let g:cursorword = 0
+	else
+		let g:cursorword = 1
+	endif
+endfunction
+
 " -------------------------------------------------------
 Plug 'w0rp/ale'
 " -------------------------------------------------------
