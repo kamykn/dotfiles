@@ -291,14 +291,14 @@ function cdworktree() {
 	git rev-parse &>/dev/null
 	if [ $? -ne 0 ]; then
 		echo fatal: Not a git repository.
-		return
+		return 1
 	fi
 
 	local selectedWorkTreeDir=`git worktree list | fzf | awk '{print $1}'`
 
 	if [ "$selectedWorkTreeDir" = "" ]; then
 		# Ctrl-C.
-		return
+		return 1
 	fi
 
 	cd ${selectedWorkTreeDir}
@@ -310,11 +310,26 @@ function cdrepo() {
 
 	if [ "$selectedRepo" = "" ]; then
 		# Ctrl-C.
-		return
+		return 1
 	fi
 
 	cd ${selectedRepo}
 }
+
+
+
+function fzf-z-search
+{
+	local res=$(z | sort -rn | cut -c 12- | fzf)
+	if [ -n "$res" ]; then
+		BUFFER+="cd $res"
+		zle accept-line
+	else
+		return 1
+	fi
+}
+zle -N fzf-z-search
+bindkey '^f' fzf-z-search
 
 ##====================================================##
 ##======================= zplug ======================##
@@ -376,9 +391,23 @@ alias qr2cp="pbpaste | sed '/+--/d' | sed -e 's/|//' | sed -e 's/|\$//' | sed -e
 PATH="/usr/local/bin:${PATH}"
 
 
+# 集計系便利alias {{{
+
+# https://orebibou.com/2016/03/linuxunix%E3%81%AE%E3%82%B3%E3%83%B3%E3%82%BD%E3%83%BC%E3%83%AB%E3%81%A7%E5%B9%B3%E5%9D%87%E3%83%BB%E4%B8%AD%E5%A4%AE%E5%80%A4%E3%83%BB%E6%9C%80%E5%A4%A7%E3%83%BB%E6%9C%80%E5%B0%8F%E3%82%92%E6%B1%82/
+# 数値をリストで渡す
+
+# 平均
+alias avg='awk "{x++;sum+=$1}END {print sum/x}"'
+# 中央値
+alias median='sort -n | awk "{v[i++]=$1;}END {x=int((i+1)/2); if(x<(i+1)/2) print (v[x-1]+v[x])/2; else print v[x-1];}"'
+
+## }}}
+
+
 ##====================================================##
 ##====================== cargo =======================##
 ##====================================================##
+# for rust
 
 PATH="${PATH}:$HOME/.cargo/bin"
 

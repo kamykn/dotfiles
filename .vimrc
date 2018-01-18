@@ -101,6 +101,7 @@ set updatetime=300
 " シンタックスハイライトつけるためにかかる時間の閾値
 set redrawtime=4000
 
+
 "行番号
 set number
 :command! Nu set relativenumber
@@ -184,6 +185,10 @@ cnoremap <C-p> <Up>
 cnoremap <M-b> <S-Left>
 " 次の単語へ移動
 cnoremap <M-f> <S-Right>
+" 補完候補選択
+" inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+" inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+" inoremap <expr> <CR> pumvisible() ? "<C-y>" : "\<CR>"
 " }}}
 
 "------------------------------------------------------
@@ -289,7 +294,7 @@ command! FZFBuffer :call fzf#run({
 			\   'sink':    function('<sid>bufopen'),
 			\   'options': '+m',
 			\   'down':    len(<sid>buflist()) + 2
-			\ })<CR>
+			\ })
 
 
 function! s:buflist()
@@ -370,6 +375,8 @@ Plug 'gorodinskiy/vim-coloresque'
 " -------------------------------------------------------
 Plug 'airblade/vim-gitgutter'
 " -------------------------------------------------------
+let g:gitgutter_realtime = 0
+
 " -------------------------------------------------------
 Plug 'tpope/vim-fugitive'
 " -------------------------------------------------------
@@ -423,9 +430,9 @@ Plug 'tobyS/vmustache', {'for': ['php']}
 Plug 'tobyS/pdv', {'for': ['php']}
 " -------------------------------------------------------
 " SirVer/ultisnips
-let g:UltiSnipsExpandTrigger       = "<Tab>"
-let g:UltiSnipsJumpForwardTrigger  = "<Tab>"
-let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
+" let g:UltiSnipsExpandTrigger       = "<C-k>"
+" let g:UltiSnipsJumpForwardTrigger  = "<C-k>"
+" let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
 
 " tobyS/pdv
 let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
@@ -452,7 +459,7 @@ Plug 'itchyny/vim-cursorword'
 let g:cursorword = 0
 command! Tglcw call s:tglCursorWord()
 
-function s:tglCursorWord()
+function! s:tglCursorWord()
 	if g:cursorword
 		let g:cursorword = 0
 	else
@@ -494,14 +501,26 @@ if version >= 800
 		Plug 'roxma/nvim-yarp'
 		Plug 'roxma/vim-hug-neovim-rpc'
 	endif
+
+	" 上部に保管した際のDocstringを表示しない
+	autocmd FileType * setlocal completeopt-=preview
+
 	let g:deoplete#enable_at_startup = 1
 	let g:deoplete#enable_smart_case = 1
-	let g:deoplete#auto_complete_start_length = 4
-	let g:deoplete#disable_auto_complete=1
+	let g:deoplete#auto_complete_start_length = 2
+	let g:deoplete#disable_auto_complete = 0
 	let g:auto_complete_delay = 2000
-	let g:deoplete#omni_patterns = {
-	  \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
-	  \ }
+
+	" 重い
+	" let g:deoplete#omni_patterns = {
+	"   \ 'php': '\h\w*\|[^. \t]->\%(\h\w*\)\?\|\h\w*::\%(\h\w*\)\?'
+	"   \ }
+
+	" PHP Complete Daemon
+	" Plug 'lvht/phpcd.vim', { 'for': 'php', 'do': 'composer install' }
+	" let g:deoplete#ignore_sources = get(g:, 'deoplete#ignore_sources', {})
+	" let g:deoplete#ignore_sources.php = ['phpcd', 'omni']
+	" let g:phpcd_autoload_path = 'path/to/autoload_file.php'
 endif
 
 " -------------------------------------------------------
@@ -661,6 +680,12 @@ Plug 'kmszk/skyhawk'
 " -------------------------------------------------------
 Plug 'kmszk/skyknight'
 " -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'cocopon/iceberg.vim'
+" -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'altercation/vim-colors-solarized'
+" -------------------------------------------------------
 
 call plug#end()
 " }}}
@@ -670,8 +695,12 @@ call plug#end()
 " -------------------------------------------------------
 
 " {{{
+"
 " colorscheme skyhawk
 colorscheme skyknight
+" colorscheme solarized
+" let g:nord_italic_comments = 1
+" colorscheme vim-material
 
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
@@ -691,6 +720,15 @@ function! s:get_highlight_info()
     execute "highlight " . s:get_syn_name(s:get_syn_id(1))
 endfunction
 command! HighlightInfo call s:get_highlight_info()
+" }}}
+
+
+" -------------------------------------------------------
+" 最後に書かないと効かない系
+" -------------------------------------------------------
+" {{{
+" *などで検索するときにどの記号を含めてcwordとするか
+set iskeyword-=- " phpのアロー演算子まで拾うので
 " }}}
 
 " -------------------------------------------------------
@@ -723,4 +761,3 @@ command! HighlightInfo call s:get_highlight_info()
 " - redrawtimeを突き抜ける
 "
 " }}}
-
