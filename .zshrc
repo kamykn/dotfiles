@@ -358,6 +358,9 @@ zplug "zsh-users/zsh-autosuggestions", defer:2
 # ---------------------------------------------------
 zplug "supercrabtree/k"
 # ---------------------------------------------------
+# ---------------------------------------------------
+zplug "rupa/z", use:z.sh
+# ---------------------------------------------------
 
 # Install plugins if there are plugins that have not been installed
 if ! zplug check --verbose; then
