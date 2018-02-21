@@ -610,8 +610,8 @@ let g:lightline = {
 	\              [ 'percent' ],
 	\              [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
 	\ },
-	\ 'separator'         : { 'left': '⮀', 'right': '⮂' },
-	\ 'subseparator'      : { 'left': '⮁', 'right': '⮃' },
+	\ 'separator'         : { 'left': "\ue0b0", 'right': "\ue0b2" },
+	\ 'subseparator'      : { 'left': "\ue0b1", 'right': "\ue0b3" },
 	\ 'component_function': {
 	\     'fugitive':       'LightlineFugitive',
 	\     'readonly':       'LightlineReadonly',
