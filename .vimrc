@@ -645,7 +645,7 @@ function! LightlineReadonly()
 	if &filetype == "help"
 		return ""
 	elseif &readonly
-		return "⭤"
+		return "\ue0a2"
 	else
 		return ""
 	endif
@@ -654,14 +654,14 @@ endfunction
 function! LightlineFugitive()
 	if exists("*fugitive#head")
 		let branch = fugitive#head()
-		return branch !=# '' ? '⭠ '.branch : ''
+		return branch !=# '' ? branch : ''
 	endif
 	return ''
 endfunction
 
 
 " maximbaz/lightline-ale
-let g:lightline#ale#indicator_warnings = "⚠ "
+let g:lightline#ale#indicator_warnings  = "⚠ "
 let g:lightline#ale#indicator_errors   = "☓"
 let g:lightline#ale#indicator_ok       = ""
 
