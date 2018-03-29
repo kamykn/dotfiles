@@ -129,6 +129,7 @@ fbranchcp() {
 alias brname='git symbolic-ref --short HEAD'
 alias cpbrname='git symbolic-ref --short HEAD  | tr -d "\n" '' | pbcopy'
 
+alias gitroot='git rev-parse --show-toplevel'
 alias cdgitroot='cd `git rev-parse --show-toplevel`'
 # }}}
 
@@ -261,7 +262,7 @@ ffind() {
 }
 
 # git commit browser
-fcommitshow() {
+fglogg() {
 	git log --graph --color=always \
 		--format="%C(auto)%h%d %s %C(black)%C(bold)%cr" "$@" |
 	fzf --ansi --no-sort --reverse --tiebreak=index --bind=ctrl-s:toggle-sort \
@@ -273,7 +274,7 @@ FZF-EOF"
 }
 
 # commit hash search
-fcommitsearch() {
+fglog() {
 	local commits commit
 	commits=$(git log --color=always --pretty=oneline --abbrev-commit --reverse) &&
 		commit=$(echo "$commits" | fzf --tac +s +m -e --ansi --reverse) &&
@@ -425,7 +426,6 @@ alias avg='awk "{x++;sum+=$1}END {print sum/x}"'
 alias median='sort -n | awk "{v[i++]=$1;}END {x=int((i+1)/2); if(x<(i+1)/2) print (v[x-1]+v[x])/2; else print v[x-1];}"'
 
 # }}}
-
 
 ##====================================================##
 ##==================== $PATHなど =====================##
