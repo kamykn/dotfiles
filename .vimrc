@@ -47,7 +47,6 @@ set spelllang=en,cjk
 " スペルチェック対象
 syntax spell toplevel
 
-
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
 " macのterminalなら、環境設定->プロファイル->->詳細->Unicode 東アジアA(曖昧)の文字幅をW(広)にするにチェック
@@ -100,7 +99,12 @@ set synmaxcol=600
 set updatetime=300
 " シンタックスハイライトつけるためにかかる時間の閾値
 set redrawtime=4000
-
+" リーダー
+let mapleader = "\<Space>"
+" カレントじゃないウインドウ以外を閉じる
+nnoremap <leader>o :only<CR>
+" カレントのタブを閉じる(分割が残らない)
+nnoremap <leader>tq :tabclose<CR>
 
 "行番号
 set number
@@ -112,14 +116,23 @@ set modeline
 " 3行目までをモードラインとして検索する
 set modelines=3
 
+if version >= 800 || exists("g:gui_oni")
+" terminalモードから抜ける
+:tnoremap <silent><Esc><Esc> <C-\><C-n>
+endif
+
 " MySQLのsyntax highlight
 let g:sql_type_default = 'mysql'
 
 " Enable filetype plugins
 filetype plugin indent on
 
-if version >= 800
+if version >= 800 || exists("g:gui_oni")
 	set completeopt+=noselect,noinsert
+endif
+
+if exists("g:gui_oni") 
+	set mouse=a
 endif
 
 " " 前回開いたファイルのundo
@@ -149,9 +162,9 @@ vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
 vnoremap <silent> <C-p> "0p
 " 行末空白削除
-:command! Sdel s/ *$// | noh
+:command! Sdel %s/[\t ]*$// | noh
 " 雑に打ってもイケるように
-nnoremap ; :
+" nnoremap ; :
 " exモードに入らない
 nnoremap Q <Nop>
 " recodingしない
@@ -159,7 +172,7 @@ nnoremap q <Nop>
 " さっき挿入した文字を挿入してinsert モードを終了しない
 nnoremap <C-@> <Nop>
 " ESCキー2度押しでハイライトの切り替え
-nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
+" nnoremap <silent><Esc><Esc> :<C-u>set nohlsearch!<CR>
 " insert中にC-cでSEGVで死ぬことがあったため
 inoremap <C-c> <C-[>
 " Session 作成
@@ -185,10 +198,21 @@ cnoremap <C-p> <Up>
 cnoremap <M-b> <S-Left>
 " 次の単語へ移動
 cnoremap <M-f> <S-Right>
+" 行削除を一旦何もしないようにしとく
+cnoremap <C-u> <Nop>
 " 補完候補選択
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 " inoremap <expr> <CR> pumvisible() ? "<C-y>" : "\<CR>"
+
+" OniVimのC-v C-c有効化
+" FYI: https://github.com/onivim/oni/blob/8d08aa109299517c0c6799c66e962563b0fd5fa4/browser/src/Input/KeyBindings.ts#L38
+if exists("g:gui_oni") 
+	nnoremap <M-v> "*p
+	inoremap <M-v> <C-R>*
+	cnoremap <M-v> <C-R>*
+	vnoremap <M-c> "*y
+endif
 " }}}
 
 "------------------------------------------------------
@@ -203,7 +227,7 @@ augroup vimrcEx
 augroup END
 
 " grep 後に quickfix勝手に開く
-autocmd QuickFixCmdPost grep cope
+autocmd QuickFixCmdPost grep tabe | cope
 
 augroup HighlightTrailingSpaces
   autocmd!
@@ -345,11 +369,32 @@ function! s:fzf_tag(fzf_tags_file_full_path)
 
 	" https://stackoverflow.com/questions/11532157/unix-removing-duplicate-lines-without-sorting
 	" sort -u の代わりに awk '!x[$0]++' を使うことで逐次処理を維持
-	" awk '!x[$1]++ {print $1}' は awk {'print $1'} | awk '!x[$0]++'と一緒 
+	" awk '!x[$1]++ {print $1}' は awk {'print $1'} | awk '!x[$0]++'と一緒
 	command! FZFTagList call fzf#run({
 				\ 'source': "cat " . s:fzf_tags_file_full_path . " | awk '!x[$1]++ {print $1}' |  grep -v '^[!\(\=]'",
 				\ 'sink': 'tag',
 				\ 'down':    '40%'})
+endfunction
+
+" [file open] ----------------------------------
+"
+" ファイルに書かれたパスからマッチするファイル開く
+nnoremap <leader>f :FZFOpenFile<CR>
+command! FZFOpenFile call FZFOpenFileFunc()
+
+function! FZFOpenFileFunc()
+	let s:file_path = expand("<cfile>")
+
+	if s:file_path == ''
+		echo '[Error] <cfile> return empty string.'
+		return 0
+	endif
+
+	call fzf#run({
+			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
+			\ 'sink': 'tabe',
+			\ 'options': '-e -x +s --query=' . shellescape(s:file_path),
+			\ 'down':    '40%'})
 endfunction
 
 " }}}
@@ -365,7 +410,11 @@ endfunction
 " [Install command]
 " :PlugInstall
 
-call plug#begin('~/.vim/plugged')
+if exists("g:gui_oni") 
+    call plug#begin('~/.oni/plugins')
+else 
+    call plug#begin('~/.vim/plugged')
+endif
 
 " -------------------------------------------------------
 Plug 'sickill/vim-monokai'
@@ -380,6 +429,11 @@ let g:gitgutter_realtime = 0
 " -------------------------------------------------------
 Plug 'tpope/vim-fugitive'
 " -------------------------------------------------------
+" コミット履歴から開く
+nmap <leader>gs :Gstatus <CR>
+nmap <leader>gl :Gl Glog -n 100 -- <CR>
+nmap <leader>ga :Gwrite<CR>
+
 " -------------------------------------------------------
 Plug 'junegunn/vim-easy-align'
 " -------------------------------------------------------
@@ -485,7 +539,7 @@ let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " unusedcode    ： 使われていないコードを検出するルール
 
 
-if version >= 800
+if version >= 800 || exists("g:gui_oni")
 	" -------------------------------------------------------
 	" Plug 'Shougo/deoplete.nvim'
 	" -------------------------------------------------------
@@ -546,7 +600,7 @@ let g:tagbar_type_php  = {
 " カレントディレクトリがgitのbranch上でのみTagを有効化
 " gitのrootディレクトリの.gitにタグファイルを入れてしまう
 let s:is_on_git_branch = system('git rev-parse &>/dev/null; echo $?')
-if s:is_on_git_branch == 0 
+if s:is_on_git_branch == 0
 	" -------------------------------------------------------
 	Plug 'szw/vim-tags'
 	" -------------------------------------------------------
@@ -670,7 +724,26 @@ let g:lightline#ale#indicator_ok       = ""
 " " -------------------------------------------------------
 " let g:php_localvarcheck_enable = 1
 " let g:php_localvarcheck_global = 0
+"
+" -------------------------------------------------------
+Plug 't9md/vim-quickhl'
+" -------------------------------------------------------
+"
+nmap <Space>m <Plug>(quickhl-manual-this)
+xmap <Space>m <Plug>(quickhl-manual-this)
 
+nmap <Space>w <Plug>(quickhl-manual-this-whole-word)
+xmap <Space>w <Plug>(quickhl-manual-this-whole-word)
+
+nmap <Space>c <Plug>(quickhl-manual-clear)
+vmap <Space>c <Plug>(quickhl-manual-clear)
+
+nmap <Space>M <Plug>(quickhl-manual-reset)
+xmap <Space>M <Plug>(quickhl-manual-reset)
+
+nmap <Space>j <Plug>(quickhl-cword-toggle)
+nmap <Space>] <Plug>(quickhl-tag-toggle)
+map H <Plug>(operator-quickhl-manual-this-motion)
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
 " -------------------------------------------------------
@@ -686,7 +759,10 @@ Plug 'cocopon/iceberg.vim'
 " -------------------------------------------------------
 Plug 'altercation/vim-colors-solarized'
 " -------------------------------------------------------
-
+" -------------------------------------------------------
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+" -------------------------------------------------------
 call plug#end()
 " }}}
 
@@ -696,18 +772,18 @@ call plug#end()
 
 " {{{
 "
-" colorscheme skyhawk
-colorscheme skyknight
-" colorscheme solarized
-" let g:nord_italic_comments = 1
-" colorscheme vim-material
+if !exists("g:gui_oni")
+    " colorscheme skyhawk
+    colorscheme skyknight
+    " colorscheme solarized
+endif
 
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 hi clear SpellCap " & ALE
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
-" カーソル下のhighlight情報を表示する 
+" カーソル下のhighlight情報を表示する
 function! s:get_syn_id(transparent)
     let synid = synID(line('.'), col('.'), 1)
     return a:transparent ? synIDtrans(synid) : synid
@@ -729,6 +805,9 @@ command! HighlightInfo call s:get_highlight_info()
 " {{{
 " *などで検索するときにどの記号を含めてcwordとするか
 set iskeyword-=- " phpのアロー演算子まで拾うので
+
+" phpでasterisk検索の際にアロー演算子が続く変数が引っかからないため…(テスト中)
+nnoremap * g*
 " }}}
 
 " -------------------------------------------------------
@@ -760,4 +839,10 @@ set iskeyword-=- " phpのアロー演算子まで拾うので
 " - ハイライトされない問題
 " - redrawtimeを突き抜ける
 "
+" -------------------------------------------------------
+" oni vim (neo vim)
+" -------------------------------------------------------
+" :terminalから親のnvimでファイル編集を開く
+" pip3 install neovim-remote
 " }}}
+"
