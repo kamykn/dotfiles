@@ -105,6 +105,11 @@ let mapleader = "\<Space>"
 nnoremap <leader>o :only<CR>
 " カレントのタブを閉じる(分割が残らない)
 nnoremap <leader>tq :tabclose<CR>
+" :qの簡易化
+nnoremap <leader>q :quit<CR>
+" 余計なもの全部消す
+nnoremap <leader>tn :Tabnewonly<CR>
+:command! Tabnewonly tabe | tabonly
 
 "行番号
 set number
@@ -397,6 +402,41 @@ function! FZFOpenFileFunc()
 			\ 'down':    '40%'})
 endfunction
 
+" [tab open] ----------------------------------
+"
+" 数あるタブから開く
+nnoremap <leader>to :FZFTabOpen<CR>
+command! FZFTabOpen call s:FZFTabOpenFunc()
+
+function! s:FZFTabOpenFunc()
+	call fzf#run({
+			\ 'source':  s:GetTabList(),
+			\ 'sink':    function('s:TabListSink'),
+			\ 'options': '-m -x +s',
+			\ 'down':    '40%'})
+endfunction
+
+function! s:GetTabList()
+	let s:tabList = execute('tabs')
+	let s:textList = []
+	for tabText	 in split(s:tabList, '\n')
+		let s:tabPageText = matchstr(tabText, '^Tab page')
+		if !empty(s:tabPageText)
+			let s:pageNum = matchstr(tabText, '[0-9]*$')
+		else 
+			let s:textList = add(s:textList, printf('%d %s',
+				\ s:pageNum,
+				\ tabText,
+				\	))
+		endif
+	endfor
+	return s:textList
+endfunction
+
+function! s:TabListSink(line)
+	let parts = split(a:line, '\s')
+	execute 'normal ' . parts[0] . 'gt' 
+endfunction
 " }}}
 
 "------------------------------------------------------
@@ -430,9 +470,10 @@ let g:gitgutter_realtime = 0
 Plug 'tpope/vim-fugitive'
 " -------------------------------------------------------
 " コミット履歴から開く
-nmap <leader>gs :Gstatus <CR>
-nmap <leader>gl :Gl Glog -n 100 -- <CR>
-nmap <leader>ga :Gwrite<CR>
+nnoremap <leader>gs :Gstatus <CR>
+nnoremap <leader>gl :Glog master..HEAD -n 100 -- <CR>
+nnoremap <leader>ga :Gwrite<CR>
+nnoremap <leader>gc :Gcommit<CR>
 
 " -------------------------------------------------------
 Plug 'junegunn/vim-easy-align'
