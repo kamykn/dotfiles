@@ -1,3 +1,4 @@
+" vim: foldmethod=marker
 " vim: foldcolumn=3
 " vim: foldlevel=0
 
@@ -37,6 +38,13 @@ scriptencoding utf-8
 " 色関連
 set t_Co=256
 set background=dark
+" Vim + tmuxで 24bit Colorを使う
+" https://qiita.com/yami_beta/items/ef535d3458addd2e8fbb
+if exists('$TMUX')
+	set termguicolors
+	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
 
 syntax on
 
@@ -139,7 +147,7 @@ if version >= 800 || exists("g:gui_oni")
 	set completeopt+=noselect,noinsert
 endif
 
-if exists("g:gui_oni") 
+if exists("g:gui_oni")
 	set mouse=a
 endif
 
@@ -708,8 +716,8 @@ let g:lightline = {
 	\              [ 'percent' ],
 	\              [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
 	\ },
-	\ 'separator'         : { 'left': "\ue0b0", 'right': "\ue0b2" },
-	\ 'subseparator'      : { 'left': "\ue0b1", 'right': "\ue0b3" },
+	\ 'separator'         : { 'left': "\u2b80", 'right': "\u2b82" },
+	\ 'subseparator'      : { 'left': "\u2b81", 'right': "\u2b83" },
 	\ 'component_function': {
 	\     'fugitive':       'LightlineFugitive',
 	\     'readonly':       'LightlineReadonly',
@@ -801,6 +809,9 @@ Plug 'kmszk/skyknight'
 Plug 'joshdick/onedark.vim'
 " -------------------------------------------------------
 " -------------------------------------------------------
+Plug 'cocopon/iceberg.vim'
+" -------------------------------------------------------
+" -------------------------------------------------------
 Plug 'altercation/vim-colors-solarized'
 " -------------------------------------------------------
 " -------------------------------------------------------
@@ -828,13 +839,13 @@ endfunction
 :command! Bgdark call s:bgdark()
 function! s:bgdark()
     " colorscheme skyhawk
-    colorscheme skyknight
-    " colorscheme onedark
+	" colorscheme skyknight
+    colorscheme onedark
+	" colorscheme iceberg
 	set background=dark
 endfunction
 
 if !exists("g:gui_oni")
-    colorscheme skyknight
 	call s:bgdark()
 endif
 
