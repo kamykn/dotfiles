@@ -1,4 +1,3 @@
-" vim: foldmethod=marker
 " vim: foldcolumn=3
 " vim: foldlevel=0
 
@@ -99,6 +98,10 @@ set synmaxcol=600
 set updatetime=300
 " シンタックスハイライトつけるためにかかる時間の閾値
 set redrawtime=4000
+" vsplitでしたに開く
+set splitbelow
+" 新しいウィンドウを右に開く
+set splitright
 " リーダー
 let mapleader = "\<Space>"
 " カレントじゃないウインドウ以外を閉じる
@@ -325,7 +328,6 @@ command! FZFBuffer :call fzf#run({
 			\   'down':    len(<sid>buflist()) + 2
 			\ })
 
-
 function! s:buflist()
   redir => ls
   silent ls
@@ -491,8 +493,8 @@ nmap ga <Plug>(EasyAlign)
 Plug 'tyru/caw.vim'
 " -------------------------------------------------------
 " コメントアウト
-nmap <C-K> <Plug>(caw:hatpos:toggle)
-vmap <C-K> <Plug>(caw:hatpos:toggle)
+nmap <C-/> <Plug>(caw:hatpos:toggle)
+vmap <C-/> <Plug>(caw:hatpos:toggle)
 
 " -------------------------------------------------------
 Plug 'tpope/vim-surround'
@@ -658,8 +660,9 @@ if s:is_on_git_branch == 0
 	" Macの場合には最初から入っているctagsだと-Rオプションがないと怒られる
 	" FYI:https://gist.github.com/nazgob/1570678
 	"
-
-	let s:git_root_dir = substitute(system('git rev-parse --show-toplevel'), '\n\+$', '', '')
+	" https://git-scm.com/docs/git-worktree#git-worktree-list
+	" "The main worktree is listed first,"
+	let s:git_root_dir = substitute(system("git worktree list | head -n 1 | awk {'print $1'}"), '\n\+$', '', '')
 	let s:git_ignore_dir = ".git"
 	let s:tags_file_name = ".tags"
 	let s:tags_file_full_path = s:git_root_dir . "/" . s:git_ignore_dir . "/" . s:tags_file_name
@@ -667,7 +670,7 @@ if s:is_on_git_branch == 0
 	execute "set tags+=" . s:tags_file_full_path
 	" 保存時に裏で自動でctagsを作成する
 	let g:vim_tags_auto_generate = 0
-	" tag保ブ
+	" tag保存ファイル名
 	let g:vim_tags_main_file = s:tags_file_name
 	" tagファイルのパス
 	let g:vim_tags_extension = s:git_root_dir . '/' . s:git_ignore_dir
@@ -795,10 +798,13 @@ Plug 'kmszk/skyhawk'
 Plug 'kmszk/skyknight'
 " -------------------------------------------------------
 " -------------------------------------------------------
-Plug 'cocopon/iceberg.vim'
+Plug 'joshdick/onedark.vim'
 " -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'altercation/vim-colors-solarized'
+" -------------------------------------------------------
+" -------------------------------------------------------
+Plug 'freeo/vim-kalisi'
 " -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
@@ -812,11 +818,24 @@ call plug#end()
 " -------------------------------------------------------
 
 " {{{
-"
-if !exists("g:gui_oni")
+
+:command! Bglight call s:bglight()
+function! s:bglight()
+	colorscheme kalisi
+	set background=light
+endfunction
+
+:command! Bgdark call s:bgdark()
+function! s:bgdark()
     " colorscheme skyhawk
     colorscheme skyknight
-    " colorscheme solarized
+    " colorscheme onedark
+	set background=dark
+endfunction
+
+if !exists("g:gui_oni")
+    colorscheme skyknight
+	call s:bgdark()
 endif
 
 hi clear SpellBad
