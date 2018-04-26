@@ -110,6 +110,9 @@ set redrawtime=4000
 set splitbelow
 " 新しいウィンドウを右に開く
 set splitright
+" *などで検索するときにどの記号を含めてcwordとするか
+" phpのアロー演算子まで拾うので
+set iskeyword-=-
 " リーダー
 let mapleader = "\<Space>"
 " カレントじゃないウインドウ以外を閉じる
@@ -133,8 +136,8 @@ set modeline
 set modelines=3
 
 if version >= 800 || exists("g:gui_oni")
-" terminalモードから抜ける
-:tnoremap <silent><Esc><Esc> <C-\><C-n>
+	" terminalモードから抜ける
+	:tnoremap <silent><Esc><Esc> <C-\><C-n>
 endif
 
 " MySQLのsyntax highlight
@@ -150,16 +153,6 @@ endif
 if exists("g:gui_oni")
 	set mouse=a
 endif
-
-" " 前回開いたファイルのundo
-" if has('persistent_undo')
-"     let undo_dir = expand('$HOME/.vim/undo_dir')
-"     if !isdirectory(undo_dir)
-"         call mkdir(undo_dir, "", 0700)
-"     endif
-"     set undodir=$HOME/.vim/undo_dir
-"     set undofile
-" endif
 " }}}
 
 "------------------------------------------------------
@@ -223,12 +216,43 @@ cnoremap <C-u> <Nop>
 
 " OniVimのC-v C-c有効化
 " FYI: https://github.com/onivim/oni/blob/8d08aa109299517c0c6799c66e962563b0fd5fa4/browser/src/Input/KeyBindings.ts#L38
-if exists("g:gui_oni") 
+if exists("g:gui_oni")
 	nnoremap <M-v> "*p
 	inoremap <M-v> <C-R>*
 	cnoremap <M-v> <C-R>*
 	vnoremap <M-c> "*y
 endif
+
+" PHP Lint
+nnoremap <leader>ap :CallPhpLint<CR>
+command! CallPhpLint call s:CallPhpLint()
+
+function! s:CallPhpLint()
+	call s:PhpLint() | if len(getqflist()) != 0 | copen 1 | else | cclose | endif
+endfunction
+
+function! s:PhpLint()
+	let l:result = system('php -l ' . expand("%"))
+	let l:resultList = split(l:result, "\n")
+
+	if (match(l:resultList, 'No syntax errors detected in') != -1)
+		call setqflist([], 'r')
+		return
+	endif
+
+	let l:errors = []
+	for r in l:resultList
+		let info = {'filename': expand("%")}
+		"echo match(r, "\von line ([0-9]+)\C")
+		"echo substitute(match(r, "\von line ([0-9]+)\C"), "([0-9]+)", "\n")
+		" let info.lnum = substitute(match(r, "\von line ([0-9]+)\C", '\1'), "([0-9]+)", "\n")
+		let info.text = r
+		call add(errors, info)
+		break
+	endfor
+
+	call setqflist(l:errors, 'r')
+endfunction
 " }}}
 
 "------------------------------------------------------
@@ -237,51 +261,23 @@ endif
 
 " {{{
 "前回閉じたときのカーソルの位置を保存
-augroup vimrcEx
-  au BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
-  \ exe "normal g`\"" | endif
+augroup VimrcEx
+	autocmd!
+	autocmd BufRead * if line("'\"") > 0 && line("'\"") <= line("$") |
+				\ exe "normal g`\"" | endif
 augroup END
 
-" grep 後に quickfix勝手に開く
-autocmd QuickFixCmdPost grep tabe | cope
+augroup Grep
+	autocmd!
+	" grep 後に quickfix勝手に開く
+	autocmd QuickFixCmdPost grep tabe | cope
+augroup END
 
 augroup HighlightTrailingSpaces
-  autocmd!
-  autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
-  autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
+	autocmd!
+	autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
+	autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
 augroup END
-
-" QuickFix書き換えてうざいので
-" augroup PHP
-"   autocmd!
-"   " autocmd FileType php set makeprg=php\ -l\ %
-"   " set errorformat=%m\ in\ %f\ on\ line\ %l
-"   " php -lの構文チェックでエラーがなければ「No syntax errors」の一行だけ出力される
-"   autocmd BufWritePost *.php call PhpLint() | if len(getqflist()) != 0 | copen 1 | endif
-" augroup END
-"
-" function! PhpLint()
-" 	let l:result = system('php -l ' . expand("%"))
-" 	let l:resultList = split(l:result, "\n")
-"
-" 	if (match(l:resultList, 'No syntax errors detected in') != -1)
-" 		call setqflist([], 'r')
-" 		return
-" 	endif
-"
-" 	let l:errors = []
-" 	for r in l:resultList
-" 		let info = {'filename': expand("%")}
-" 		"echo match(r, "\von line ([0-9]+)\C")
-" 		"echo substitute(match(r, "\von line ([0-9]+)\C"), "([0-9]+)", "\n")
-" 		" let info.lnum = substitute(match(r, "\von line ([0-9]+)\C", '\1'), "([0-9]+)", "\n")
-" 		let info.text = r
-" 		call add(errors, info)
-" 		break
-" 	endfor
-"
-" 	call setqflist(l:errors, 'r')
-" endfunction
 " }}}
 
 "------------------------------------------------------
@@ -290,11 +286,11 @@ augroup END
 "
 " {{{
 " [初回インストールコマンド]
+" plugに移したので基本的には不要
 " git clone https://github.com/junegunn/fzf.git ~/.fzf
 "
 " FYI: http://koturn.hatenablog.com/entry/2015/11/26/000000
 " FYI: https://github.com/junegunn/fzf/wiki/Examples-(vim)
-"
 
 " :FZFコマンドを使えるように
 set rtp+=~/.fzf
@@ -433,7 +429,7 @@ function! s:GetTabList()
 		let s:tabPageText = matchstr(tabText, '^Tab page')
 		if !empty(s:tabPageText)
 			let s:pageNum = matchstr(tabText, '[0-9]*$')
-		else 
+		else
 			let s:textList = add(s:textList, printf('%d %s',
 				\ s:pageNum,
 				\ tabText,
@@ -445,7 +441,7 @@ endfunction
 
 function! s:TabListSink(line)
 	let parts = split(a:line, '\s')
-	execute 'normal ' . parts[0] . 'gt' 
+	execute 'normal ' . parts[0] . 'gt'
 endfunction
 " }}}
 
@@ -460,17 +456,16 @@ endfunction
 " [Install command]
 " :PlugInstall
 
-if exists("g:gui_oni") 
+if exists("g:gui_oni")
     call plug#begin('~/.oni/plugins')
-else 
+else
     call plug#begin('~/.vim/plugged')
 endif
 
 " -------------------------------------------------------
-Plug 'sickill/vim-monokai'
-Plug 'gorodinskiy/vim-coloresque'
+" Plug 'gorodinskiy/vim-coloresque' " iskを汚染する :verbose set iskeyword?
 " -------------------------------------------------------
-" カラースキーム
+
 " -------------------------------------------------------
 Plug 'airblade/vim-gitgutter'
 " -------------------------------------------------------
@@ -535,50 +530,26 @@ Plug 'tobyS/vmustache', {'for': ['php']}
 Plug 'tobyS/pdv', {'for': ['php']}
 " -------------------------------------------------------
 " SirVer/ultisnips
-" let g:UltiSnipsExpandTrigger       = "<C-k>"
-" let g:UltiSnipsJumpForwardTrigger  = "<C-k>"
-" let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
+let g:UltiSnipsExpandTrigger       = "<Tab>"
+let g:UltiSnipsJumpForwardTrigger  = "<Tab>"
+let g:UltiSnipsJumpBackwardTrigger = "<S-Tab>"
 
 " tobyS/pdv
 let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
 nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
-
-
-" " -------------------------------------------------------
-" Plug 'osyo-manga/vim-brightest'
-" " -------------------------------------------------------
-" " 画面内のカーソル下の単語と同じ単語をハイライト
-" let g:brightest#enable_on_CursorHold = 1
-" let g:brightest#pattern = '\k\+'
-" let g:brightest#enable_filetypes = {
-" \   "_"   : 0,
-" \   "vim" : 1,
-" \   "php" : 1,
-" \}
-"
-"
-"
-" -------------------------------------------------------
-Plug 'itchyny/vim-cursorword'
-" -------------------------------------------------------
-let g:cursorword = 0
-command! Tglcw call s:tglCursorWord()
-
-function! s:tglCursorWord()
-	if g:cursorword
-		let g:cursorword = 0
-	else
-		let g:cursorword = 1
-	endif
-endfunction
 
 " -------------------------------------------------------
 Plug 'w0rp/ale'
 " -------------------------------------------------------
 " g:ale_lint_on_saveはデフォルトでon
 let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_save = 1
+let g:ale_lint_on_enter = 1
+nmap <leader>al <Plug>(ale_next_wrap)
+
 " let g:ale_set_loclist = 0
 " let g:ale_set_quickfix = 1
+
 " ruleset
 let g:ale_php_phpcs_standard = $HOME.'/.phpconf/phpcs/ruleset.xml'
 let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
@@ -607,8 +578,11 @@ if version >= 800 || exists("g:gui_oni")
 		Plug 'roxma/vim-hug-neovim-rpc'
 	endif
 
-	" 上部に保管した際のDocstringを表示しない
-	autocmd FileType * setlocal completeopt-=preview
+	augroup Deoplete
+		autocmd!
+		" 上部に保管した際のDocstringを表示しない
+		autocmd FileType * setlocal completeopt-=preview
+	augroup END
 
 	let g:deoplete#enable_at_startup = 1
 	let g:deoplete#enable_smart_case = 1
@@ -644,6 +618,7 @@ let g:tagbar_type_php  = {
 	\ 	'c:classes',
 	\ 	'd:constant definitions',
 	\ 	'f:functions',
+	\ 	't:traits',
 	\ 	'j:javascript functions:1'
 	\ ]
 	\ }
@@ -796,6 +771,21 @@ xmap <Space>M <Plug>(quickhl-manual-reset)
 nmap <Space>j <Plug>(quickhl-cword-toggle)
 nmap <Space>] <Plug>(quickhl-tag-toggle)
 map H <Plug>(operator-quickhl-manual-this-motion)
+
+let g:quickhl_manual_colors = [
+			\ "cterm=bold ctermfg=154 gui=bold guifg=#afff00",
+			\ "cterm=bold ctermfg=197 gui=bold guifg=#ff005f",
+			\ "cterm=bold ctermfg=123 gui=bold guifg=#87ffff",
+			\ "cterm=bold ctermfg=226 gui=bold guifg=#ffff00",
+			\ "cterm=bold ctermfg=208 gui=bold guifg=#ffaf00",
+			\ "cterm=bold ctermfg=33  gui=bold guifg=#0087ff",
+			\ "cterm=bold ctermfg=141 gui=bold guifg=#af87ff"]
+
+" C-j は hi Search を利用している
+
+" -------------------------------------------------------
+Plug 'alvan/vim-closetag'
+" -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
 " -------------------------------------------------------
@@ -810,9 +800,6 @@ Plug 'joshdick/onedark.vim'
 " -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'cocopon/iceberg.vim'
-" -------------------------------------------------------
-" -------------------------------------------------------
-Plug 'altercation/vim-colors-solarized'
 " -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'freeo/vim-kalisi'
@@ -854,6 +841,9 @@ hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE g
 hi clear SpellCap " & ALE
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
+hi Search ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
+hi IncSearch ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
+
 " カーソル下のhighlight情報を表示する
 function! s:get_syn_id(transparent)
     let synid = synID(line('.'), col('.'), 1)
@@ -867,18 +857,6 @@ function! s:get_highlight_info()
     execute "highlight " . s:get_syn_name(s:get_syn_id(1))
 endfunction
 command! HighlightInfo call s:get_highlight_info()
-" }}}
-
-
-" -------------------------------------------------------
-" 最後に書かないと効かない系
-" -------------------------------------------------------
-" {{{
-" *などで検索するときにどの記号を含めてcwordとするか
-set iskeyword-=- " phpのアロー演算子まで拾うので
-
-" phpでasterisk検索の際にアロー演算子が続く変数が引っかからないため…(テスト中)
-nnoremap * g*
 " }}}
 
 " -------------------------------------------------------
