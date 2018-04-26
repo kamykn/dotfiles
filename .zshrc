@@ -112,7 +112,7 @@ fbrm() {
 	local branches branch
 	branches=$(git branch --all | grep -v HEAD) &&
 	branch=$(echo "$branches" |
-	fzf-tmux -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
+	fzf -d $(( 2 + $(wc -l <<< "$branches") )) +m) &&
 	git checkout $(echo "$branch" | sed "s/.* //" | sed "s#remotes/[^/]*/##")
 }
 
@@ -246,7 +246,7 @@ fcdr() {
 		fi
 	}
 	# local DIR=$(get_parent_dirs $(realpath "${1:-$PWD}") | fzf-tmux --tac)
-	local DIR=$(get_parent_dirs "${1:-$PWD}" | fzf-tmux --tac)
+	local DIR=$(get_parent_dirs "${1:-$PWD}" | fzf --tac)
 	cd "$DIR"
 }
 
@@ -287,7 +287,7 @@ fadd() {
 	while out=$(
 		git status --short |
 		awk '{if (substr($0,2,1) !~ / /) print $2}' |
-		fzf-tmux --multi --exit-0 --expect=ctrl-d); do
+		fzf --multi --exit-0 --expect=ctrl-d); do
 			q=$(head -1 <<< "$out")
 			n=$[$(wc -l <<< "$out") - 1]
 			addfiles=(`echo $(tail "-$n" <<< "$out")`)
