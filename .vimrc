@@ -28,22 +28,26 @@
 "------------------------------------------------------
 "
 " {{{
-" 文字コード設定
 set encoding=utf-8
 set fileencoding=utf-8
 set fileformat=unix
-
 scriptencoding utf-8
 
-" 色関連
-set t_Co=256
-set background=dark
-" Vim + tmuxで 24bit Colorを使う
-" https://qiita.com/yami_beta/items/ef535d3458addd2e8fbb
-if exists('$TMUX')
-	set termguicolors
-	let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-	let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+if has('vim_starting')
+	" tmux利用可能な場合は true color を有効化する
+	" $TERM は zshrcやbashrcなどにも依存する
+	" $COLORTERMはtruecolorが有効なときに慣例的にセットされているが必ずしもあるとは限らない(iTermではセットされていた)
+	if !has('gui_running') && exists('&termguicolors') && (exists('$TMUX') && ($TERM == 'xterm-256color')) || ($COLORTERM ==# 'truecolor')
+		set termguicolors
+
+		" tmux 等でも強制的に termguicolors を有効化するための設定 (Neovim では不要)
+		" https://medium.com/@dubistkomisch/how-to-actually-get-italics-and-true-colour-to-work-in-iterm-tmux-vim-9ebe55ebc2be
+		if !has('nvim')
+			" http://vim-jp.org/vimdoc-ja/term.html#xterm-true-color
+			let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+			let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+		endif
+	endif
 endif
 
 syntax on
