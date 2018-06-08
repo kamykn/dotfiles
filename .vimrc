@@ -1,7 +1,7 @@
 " vim: foldmethod=marker
 " vim: foldcolumn=3
 " vim: foldlevel=0
-
+"
 "     ___       ___       ___       ___       ___
 "    /\__\     /\__\     /\  \     /\  \     /\__\
 "   /:/ _/_   /::L_L_   /::\  \   _\:\  \   /:/ _/_
@@ -19,9 +19,9 @@
 "
 " # memo
 " ## fold
-" za トグルして開く
-" zr 全開き
-" zm 全閉じ
+" - za トグルして開く
+" - zr 全開き
+" - zm 全閉じ
 
 "------------------------------------------------------
 " Common Settings.
@@ -171,7 +171,8 @@ endif
 :command! DiffWindo tabnew | vnew | diffthis
 :command! Diff diffthis
 " grep書式自動挿入
-vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
+vnoremap <expr> ? ':Ag ' . expand('<cword>')
+"vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
 vnoremap <silent> <C-p> "0p
 " 行末空白削除
@@ -213,6 +214,9 @@ cnoremap <M-b> <S-Left>
 cnoremap <M-f> <S-Right>
 " 行削除を一旦何もしないようにしとく
 cnoremap <C-u> <Nop>
+" 検索語を
+nmap n nzz
+nmap N Nzz
 " 補完候補選択
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
@@ -488,6 +492,7 @@ nnoremap <leader>gc :Gcommit<CR>
 Plug 'junegunn/vim-easy-align'
 " -------------------------------------------------------
 " 選んだ範囲で整える
+" remapで動かない系
 xmap <Space> <Plug>(EasyAlign)*<Space>
 xmap ,  <Plug>(EasyAlign)*,
 " xmap = <Plug>(EasyAlign)*= // インデント直すのに使ってる
@@ -500,8 +505,8 @@ nmap ga <Plug>(EasyAlign)
 Plug 'tyru/caw.vim'
 " -------------------------------------------------------
 " コメントアウト
-nmap <C-/> <Plug>(caw:hatpos:toggle)
-vmap <C-/> <Plug>(caw:hatpos:toggle)
+nmap <leader>k <Plug>(caw:hatpos:toggle)
+vmap <leader>k <Plug>(caw:hatpos:toggle)
 
 " -------------------------------------------------------
 Plug 'tpope/vim-surround'
@@ -510,10 +515,6 @@ Plug 'tpope/vim-surround'
 Plug 'rhysd/clever-f.vim'
 " -------------------------------------------------------
 let g:clever_f_smart_case = 1
-" -------------------------------------------------------
-Plug 'tpope/vim-endwise'
-" -------------------------------------------------------
-" shell とかvimscriptとかrubyの if-endif とか閉じてくれる
 
 " -------------------------------------------------------
 Plug 'LeafCage/yankround.vim'
@@ -543,13 +544,16 @@ let g:pdv_template_dir = $HOME ."/.vim/plugged/pdv/templates_snip"
 nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
 
 " -------------------------------------------------------
+Plug 'rking/ag.vim'
+" -------------------------------------------------------
+" -------------------------------------------------------
 Plug 'w0rp/ale'
 " -------------------------------------------------------
 " g:ale_lint_on_saveはデフォルトでon
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 1
-nmap <leader>al <Plug>(ale_next_wrap)
+nnoremap <leader>al <Plug>(ale_next_wrap)
 
 " let g:ale_set_loclist = 0
 " let g:ale_set_quickfix = 1
@@ -609,7 +613,7 @@ endif
 " -------------------------------------------------------
 Plug 'majutsushi/tagbar'
 " -------------------------------------------------------
-nmap <C-^> :TagbarToggle<CR>
+nnoremap <C-^> :TagbarToggle<CR>
 let g:tagbar_width = 50
 let g:tagbar_autoshowtag = 1
 let g:tagbar_autofocus = 1
@@ -788,32 +792,41 @@ let g:quickhl_manual_colors = [
 " C-j は hi Search を利用している
 
 " -------------------------------------------------------
-Plug 'alvan/vim-closetag'
-" -------------------------------------------------------
+" shell とかvimscriptとかrubyの if-endif とか閉じてくれる
+Plug 'tpope/vim-endwise'
+" Plug 'alvan/vim-closetag'
+Plug 'kana/vim-smartinput'
+
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
 " -------------------------------------------------------
-" -------------------------------------------------------
 Plug 'kmszk/skyhawk'
-" -------------------------------------------------------
-" -------------------------------------------------------
 Plug 'kmszk/skyknight'
-" -------------------------------------------------------
-" -------------------------------------------------------
 Plug 'joshdick/onedark.vim'
-" -------------------------------------------------------
-" -------------------------------------------------------
-Plug 'cocopon/iceberg.vim'
-" -------------------------------------------------------
-" -------------------------------------------------------
 Plug 'freeo/vim-kalisi'
-" -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 " -------------------------------------------------------
+Plug 'vim-scripts/TeTrIs.vim'
+" -------------------------------------------------------
 call plug#end()
 " }}}
+" 行末スペース
+" TODO
+call smartinput#define_rule({
+			\   'at': '\s\+\%#',
+			\   'char': '<CR>',
+			\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+			\   })
+" アロー演算子
+" TODO
+call smartinput#define_rule({
+			\   'at': '\s\+\%#',
+			\   'char': '-',
+			\   'input': ">",
+			\   'filetype' : ['php'],
+			\   })
 
 " -------------------------------------------------------
 " colorscheme
@@ -823,30 +836,31 @@ call plug#end()
 
 :command! Bglight call s:bglight()
 function! s:bglight()
-	colorscheme kalisi
 	set background=light
+	colorscheme kalisi
 endfunction
 
 :command! Bgdark call s:bgdark()
 function! s:bgdark()
+	set background=dark
     " colorscheme skyhawk
 	" colorscheme skyknight
     colorscheme onedark
-	" colorscheme iceberg
-	set background=dark
+
+	" hyper用に背景色を無効にしてみる
+	" hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
 endfunction
 
-if !exists("g:gui_oni")
-	call s:bgdark()
-endif
+call s:bgdark()
 
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 hi clear SpellCap " & ALE
-hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+hi SpellCap cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
 hi Search ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
 hi IncSearch ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
+
 
 " カーソル下のhighlight情報を表示する
 function! s:get_syn_id(transparent)
