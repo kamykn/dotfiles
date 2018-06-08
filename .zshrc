@@ -57,7 +57,7 @@ autoload -U colors     ; colors
 # 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
 # 背景 HSB: 色相232°彩度30% 明度19%
 local prompt_location="%F{cyan}%B%~%b%f"
-local promot_mark="%B%(?,%F{magenta},%F{red})%(!,#,❯)%b"
+local promot_mark="%B%(?,%F{red},%F{blue})%(!,#,❯)%b"
 
 
 # 右部分 [時間]
