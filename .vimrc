@@ -117,6 +117,10 @@ set splitright
 " *などで検索するときにどの記号を含めてcwordとするか
 " phpのアロー演算子まで拾うので
 set iskeyword-=-
+" ファイル末尾改行
+set nofixendofline
+" VisualBell
+set belloff=all
 " リーダー
 let mapleader = "\<Space>"
 " カレントじゃないウインドウ以外を閉じる
@@ -171,7 +175,7 @@ endif
 :command! DiffWindo tabnew | vnew | diffthis
 :command! Diff diffthis
 " grep書式自動挿入
-vnoremap <expr> ? ':Ag ' . expand('<cword>')
+nnoremap <expr> ? ':Ag -R ' . expand('<cword>') . ' ~/project/application'
 "vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
 vnoremap <silent> <C-p> "0p
@@ -754,11 +758,11 @@ let g:lightline#ale#indicator_warnings  = "⚠ "
 let g:lightline#ale#indicator_errors   = "☓"
 let g:lightline#ale#indicator_ok       = ""
 
-" " -------------------------------------------------------
-" Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
-" " -------------------------------------------------------
-" let g:php_localvarcheck_enable = 1
-" let g:php_localvarcheck_global = 0
+" -------------------------------------------------------
+Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
+" -------------------------------------------------------
+let g:php_localvarcheck_enable = 1
+let g:php_localvarcheck_global = 0
 "
 " -------------------------------------------------------
 Plug 't9md/vim-quickhl'
@@ -796,7 +800,8 @@ let g:quickhl_manual_colors = [
 Plug 'tpope/vim-endwise'
 " Plug 'alvan/vim-closetag'
 Plug 'kana/vim-smartinput'
-
+" -------------------------------------------------------
+Plug 'rust-lang/rust.vim', {'for': ['rust']}
 " -------------------------------------------------------
 Plug 'kmszk/CCSpellCheck.vim'
 " -------------------------------------------------------
@@ -804,6 +809,7 @@ Plug 'kmszk/skyhawk'
 Plug 'kmszk/skyknight'
 Plug 'joshdick/onedark.vim'
 Plug 'freeo/vim-kalisi'
+Plug 'colepeters/spacemacs-theme.vim'
 " -------------------------------------------------------
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
@@ -846,6 +852,7 @@ function! s:bgdark()
     " colorscheme skyhawk
 	" colorscheme skyknight
     colorscheme onedark
+    " colorscheme spacemacs-theme
 
 	" hyper用に背景色を無効にしてみる
 	" hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
