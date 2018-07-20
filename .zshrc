@@ -57,7 +57,9 @@ autoload -U colors     ; colors
 # 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
 # 背景 HSB: 色相232°彩度30% 明度19%
 local prompt_location="%F{cyan}%B%~%b%f"
-local promot_mark="%B%(?,%F{red},%F{blue})%(!,#,❯)%b"
+local promot_mark="%B%F{red}%(!,#,λ)%f%b"
+local status_code="%(?,,%F{magenta} ❯❯ %f%B%F{red}%?%f%b)"
+local number_of_jobs="%(1j.%F{magenta} ❯❯ %f%F{yellow}%B%j%b%f.)"
 
 
 # 右部分 [時間]
@@ -76,9 +78,6 @@ autoload -Uz vcs_info
 setopt prompt_subst
 
 # vcsの表示
-zstyle ':vcs_info:*' formats '%s][* %F{green}%b%f'
-zstyle ':vcs_info:*' actionformats '%s][* %F{green}%b%f(%F{red}%a%f)'
-
 # プロンプト表示直前にvcs_info呼び出し
 precmd() {
 	vcs_info
@@ -89,12 +88,12 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           " (%F{green}%b%f%c%u)"
+zstyle ':vcs_info:*'     formats           "%F{magenta} ❯❯ %f%F{green}%b%c%u%f"
 zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
 # プロンプト
 PROMPT="
-${prompt_location}"'$vcs_info_msg_0_'"
+${prompt_location}"'$vcs_info_msg_0_'"${number_of_jobs}${status_code}
 ${promot_mark} "
 
 # fzfでブランチ名絞込チェックアウト
