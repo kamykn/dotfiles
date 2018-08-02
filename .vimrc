@@ -225,6 +225,8 @@ nmap N Nzz
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 " inoremap <expr> <CR> pumvisible() ? "<C-y>" : "\<CR>"
+" フルパス表示(C-Gが少し遅くなるけど…)
+nnoremap <C-G><C-G> :echo expand("%:p")<cr>
 
 " OniVimのC-v C-c有効化
 " FYI: https://github.com/onivim/oni/blob/8d08aa109299517c0c6799c66e962563b0fd5fa4/browser/src/Input/KeyBindings.ts#L38
@@ -617,7 +619,9 @@ endif
 " -------------------------------------------------------
 Plug 'majutsushi/tagbar'
 " -------------------------------------------------------
-nnoremap <C-^> :TagbarToggle<CR>
+" nnoremap <C-^> :TagbarToggle<CR>
+" Hyper.appがC-^潰してるっぽい
+nnoremap <leader>^ :TagbarToggle<CR>
 let g:tagbar_width = 50
 let g:tagbar_autoshowtag = 1
 let g:tagbar_autofocus = 1
@@ -852,10 +856,9 @@ function! s:bgdark()
     " colorscheme skyhawk
 	" colorscheme skyknight
     colorscheme onedark
-    " colorscheme spacemacs-theme
 
 	" hyper用に背景色を無効にしてみる
-	" hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
+	hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
 endfunction
 
 call s:bgdark()
