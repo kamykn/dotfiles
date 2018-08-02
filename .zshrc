@@ -56,10 +56,10 @@ autoload -U colors     ; colors
 # 名前@マシン名 プロンプト
 # 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
 # 背景 HSB: 色相232°彩度30% 明度19%
-local prompt_location="%F{cyan}%B%~%b%f"
-local promot_mark="%B%F{red}%(!,#,λ)%f%b"
-local status_code="%(?,,%F{magenta} ❯❯ %f%B%F{red}%?%f%b)"
-local number_of_jobs="%(1j.%F{magenta} ❯❯ %f%F{yellow}%B%j%b%f.)"
+local prompt_location="%F{081}%B%~%b%f"
+local promot_mark="%B%F{208}%(!,#,λ) %f%b"
+local status_code="%(?,,%F{208} 》 %f%B%F{red}%?%f%b)"
+local number_of_jobs="%(1j.%F{208} 》 %f%F{226}%B%j%b%f.)"
 
 
 # 右部分 [時間]
@@ -88,13 +88,13 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           "%F{magenta} ❯❯ %f%F{green}%b%c%u%f"
+zstyle ':vcs_info:*'     formats           "%F{208} 》%f%F{113}%b%c%u%f"
 zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
 # プロンプト
 PROMPT="
-${prompt_location}"'$vcs_info_msg_0_'"${number_of_jobs}${status_code}
-${promot_mark} "
+${prompt_location}%B"'$vcs_info_msg_0_'"%b${number_of_jobs}${status_code}
+${promot_mark}"
 
 # fzfでブランチ名絞込チェックアウト
 # ローカルブランチ
@@ -454,8 +454,8 @@ PATH="${PATH}:$HOME/.cargo/bin"
 # {{{
 
 command_not_found_handler(){
-	echo -e		"\n\e[33m                  >>> $0 <<<"
-	echo -e 	"\e[31m                        __            __ \n" \
+	echo -e		"\n\e[1;33m                 >>> $0 <<<"
+	echo -e 	"\e[1;31m                        __            __ \n" \
 				".--.--.--.---.-.-----.|  |_.-----.--|  |\n" \
 				"|  |  |  |  _  |__ --||   _|  -__|  _  |\n" \
 				"|________|___._|_____||____|_____|_____|\n"
