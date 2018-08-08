@@ -57,9 +57,9 @@ autoload -U colors     ; colors
 # 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
 # 背景 HSB: 色相232°彩度30% 明度19%
 local prompt_location="%F{081}%B%~%b%f"
-local promot_mark="%B%F{208}%(!,#,λ) %f%b"
-local status_code="%(?,,%F{208} 》 %f%B%F{red}%?%f%b)"
-local number_of_jobs="%(1j.%F{208} 》 %f%F{226}%B%j%b%f.)"
+local promot_mark="%B%F{208}%(!,#,$) %f%b"
+local status_code="%(?,,%F{208} / %f%B%F{red}%?%f%b)"
+local number_of_jobs="%(1j.%F{208} / %f%F{226}%B%j%b%f.)"
 
 
 # 右部分 [時間]
@@ -88,7 +88,7 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           "%F{208} 》%f%F{113}%b%c%u%f"
+zstyle ':vcs_info:*'     formats           "%F{208} / %f%F{113}%b%c%u%f"
 zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
 # プロンプト
