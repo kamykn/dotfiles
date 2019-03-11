@@ -2,14 +2,13 @@
 " vim: foldcolumn=3
 " vim: foldlevel=0
 "
-"     ___       ___       ___       ___       ___
-"    /\__\     /\__\     /\  \     /\  \     /\__\
-"   /:/ _/_   /::L_L_   /::\  \   _\:\  \   /:/ _/_
-"  /::-"\__\ /:/L:\__\ /\:\:\__\ /::::\__\ /::-"\__\
-"  \;:;-",-" \/_/:/  / \:\:\/__/ \::;;/__/ \;:;-",-"
-"   |:|  |     /:/  /   \::/  /   \:\__\    |:|  |
-"    \|__|     \/__/     \/__/     \/__/     \|__|
-"
+" =========================================
+"  __                          __
+" |  |--.---.-.--------.--.--.|  |--.-----.
+" |    <|  _  |        |  |  ||    <|     |
+" |__|__|___._|__|__|__|___  ||__|__|__|__|
+"                      |_____|
+" =========================================
 "
 " vim8.0+ required
 " brew upgrade vim --with-lua --with-python3
@@ -53,10 +52,10 @@ endif
 syntax on
 
 " スペルチェック
-set spell
-set spelllang=en,cjk
+set nospell
+" set spelllang=en,cjk
 " スペルチェック対象
-syntax spell toplevel
+" syntax spell toplevel
 
 " Puttyの「ウインドウ」→「変換」→「CJK文字を…」のcheckを外す
 " 三点リーダーとかは崩れるので崩れたらCtrl - lで再描写させる
@@ -70,7 +69,9 @@ set autoindent
 " ターミナルのタイトルをセットする
 set title
 " タブの幅
-set noexpandtab
+set noexpandtab " タブインデント
+" set expandtab " spaceインデント
+
 set tabstop=4
 set shiftwidth=4
 set softtabstop=0
@@ -121,6 +122,12 @@ set iskeyword-=-
 set nofixendofline
 " VisualBell
 set belloff=all
+" ルーラー
+set colorcolumn=120
+" 不可視文字
+" set list
+" set listchars=tab:»-,trail:-,eol:↲,extends:»,precedes:«,nbsp:%
+" set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%
 " リーダー
 let mapleader = "\<Space>"
 " カレントじゃないウインドウ以外を閉じる
@@ -292,6 +299,13 @@ augroup HighlightTrailingSpaces
 	autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
 	autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
 augroup END
+
+autocmd BufRead,BufNewFile *.ts set filetype=typescript
+autocmd BufRead,BufNewFile *.ddl set filetype=sql
+autocmd BufRead,BufNewFile *.es6 setlocal filetype=javascript
+" autocmd BufRead,BufNewFile *.vue setlocal filetype=vue.html.javascript.css
+
+
 " }}}
 
 "------------------------------------------------------
@@ -326,24 +340,24 @@ command! Ft   FZFTagList
 
 command! FZFFileList call fzf#run({
 			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
-			\ 'sink': 'e',
-			\ 'down':    '40%'})
+			\ 'sink':   'e',
+			\ 'down':   '40%'})
 
 " [MRU] ----------------------------------------------
 "
 command! FZFMru call fzf#run({
-			\  'source':  v:oldfiles,
-			\  'sink':    'tabe',
-			\  'options': '-m -x +s',
-			\  'down':    '40%'})
+			\ 'source':  v:oldfiles,
+			\ 'sink':    'tabe',
+			\ 'options': '-m -x +s',
+			\ 'down':    '40%'})
 
 " [Buffer] -------------------------------------------
 "
 command! FZFBuffer :call fzf#run({
-			\   'source':  reverse(<sid>buflist()),
-			\   'sink':    function('<sid>bufopen'),
-			\   'options': '+m',
-			\   'down':    len(<sid>buflist()) + 2
+			\ 'source':  reverse(<sid>buflist()),
+			\ 'sink':    function('<sid>bufopen'),
+			\ 'options': '+m',
+			\ 'down':    len(<sid>buflist()) + 2
 			\ })
 
 function! s:buflist()
@@ -360,10 +374,10 @@ endfunction
 " [QuickFix] -----------------------------------------
 "
 command! FZFQuickFix call fzf#run({
-			\  'source':  Get_qf_text_list(),
-			\  'sink':    function('s:qf_sink'),
-			\  'options': '-m -x +s',
-			\  'down':    '40%'})
+			\ 'source':  Get_qf_text_list(),
+			\ 'sink':    function('s:qf_sink'),
+			\ 'options': '-m -x +s',
+			\ 'down':    '40%'})
 
 " QuickFix形式にqfListから文字列を生成する
 function! Get_qf_text_list()
@@ -397,8 +411,8 @@ function! s:fzf_tag(fzf_tags_file_full_path)
 	" awk '!x[$1]++ {print $1}' は awk {'print $1'} | awk '!x[$0]++'と一緒
 	command! FZFTagList call fzf#run({
 				\ 'source': "cat " . s:fzf_tags_file_full_path . " | awk '!x[$1]++ {print $1}' |  grep -v '^[!\(\=]'",
-				\ 'sink': 'tag',
-				\ 'down':    '40%'})
+				\ 'sink':   'tag',
+				\ 'down':   '40%'})
 endfunction
 
 " [file open] ----------------------------------
@@ -416,8 +430,8 @@ function! FZFOpenFileFunc()
 	endif
 
 	call fzf#run({
-			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
-			\ 'sink': 'tabe',
+			\ 'source':  'find . -type d -name .git -prune -o ! -name .DS_Store',
+			\ 'sink':    'tabe',
 			\ 'options': '-e -x +s --query=' . shellescape(s:file_path),
 			\ 'down':    '40%'})
 endfunction
@@ -477,9 +491,10 @@ else
 endif
 
 " -------------------------------------------------------
-" Plug 'gorodinskiy/vim-coloresque' " iskを汚染する :verbose set iskeyword?
+Plug 'mhinz/vim-startify'
 " -------------------------------------------------------
-
+" Plug 'gorodinskiy/vim-coloresque' " iskを汚染する :verbose set iskeyword?
+Plug 'ap/vim-css-color'
 " -------------------------------------------------------
 Plug 'airblade/vim-gitgutter'
 " -------------------------------------------------------
@@ -556,6 +571,10 @@ Plug 'rking/ag.vim'
 Plug 'w0rp/ale'
 " -------------------------------------------------------
 " g:ale_lint_on_saveはデフォルトでon
+let g:ale_linters = {
+      \ 'php': ['phpmd', 'phpcs', 'php']
+      \}
+
 let g:ale_lint_on_text_changed = 'never'
 let g:ale_lint_on_save = 1
 let g:ale_lint_on_enter = 1
@@ -563,17 +582,16 @@ nnoremap <leader>al <Plug>(ale_next_wrap)
 
 " let g:ale_set_loclist = 0
 " let g:ale_set_quickfix = 1
-
 " ruleset
-let g:ale_php_phpcs_standard = $HOME.'/.phpconf/phpcs/ruleset.xml'
-let g:ale_php_phpmd_ruleset  = $HOME.'/.phpconf/phpmd/ruleset.xml'
+let g:ale_php_phan_executable = 'phan'
+let g:ale_php_phpcs_standard  = $HOME.'/.phpconf/phpcs/ruleset.xml'
+let g:ale_php_phpmd_ruleset   = $HOME.'/.phpconf/phpmd/ruleset.xml'
 " [phpmdメモ]
 " codesize      ： 循環的複雑度などコードサイズ関連部分を検出するルール
 " controversial ： キャメルケースなど議論の余地のある部分を検出するルール
 " design        ： ソフトの設計関連の問題を検出するルール
 " naming        ： 長すぎたり、短すぎたりする名前を検出するルール
 " unusedcode    ： 使われていないコードを検出するルール
-
 
 if version >= 800 || exists("g:gui_oni")
 	" -------------------------------------------------------
@@ -679,7 +697,7 @@ if s:is_on_git_branch == 0
 	nnoremap <C-]> :tab sp<CR> :exe("tjump ".expand('<cword>'))<CR>
 
 	command! Tagrm execute("!rm -i " . s:tags_file_full_path)
-	command! Tag   TagsGenerate!
+	command! Tag   silent TagsGenerate!
 
 	" FZFとのタグ連携
 	call s:fzf_tag(s:tags_file_full_path)
@@ -698,7 +716,7 @@ set laststatus=2
 
 " For Powerline
 let g:lightline = {
-	\ 'colorscheme': 'powerline' ,
+	\ 'colorscheme': 'material_vim' ,
 	\ 'active' : {
 	\   'left' : [ [ 'mode', 'paste' ],
 	\              [ 'fugitive', 'readonly', 'filename', 'modified' ] ],
@@ -763,30 +781,30 @@ let g:lightline#ale#indicator_errors   = "☓"
 let g:lightline#ale#indicator_ok       = ""
 
 " -------------------------------------------------------
-Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
+" Plug 'flyinshadow/php_localvarcheck.vim', {'for': ['php']}
 " -------------------------------------------------------
-let g:php_localvarcheck_enable = 1
-let g:php_localvarcheck_global = 0
+" let g:php_localvarcheck_enable = 1
+" let g:php_localvarcheck_global = 0
 "
 " -------------------------------------------------------
 Plug 't9md/vim-quickhl'
 " -------------------------------------------------------
 "
-nmap <Space>m <Plug>(quickhl-manual-this)
-xmap <Space>m <Plug>(quickhl-manual-this)
+nmap <leader>m <Plug>(quickhl-manual-this)
+xmap <leader>m <Plug>(quickhl-manual-this)
 
-nmap <Space>w <Plug>(quickhl-manual-this-whole-word)
-xmap <Space>w <Plug>(quickhl-manual-this-whole-word)
+nmap <leader>w <Plug>(quickhl-manual-this-whole-word)
+xmap <leader>w <Plug>(quickhl-manual-this-whole-word)
 
-nmap <Space>c <Plug>(quickhl-manual-clear)
-vmap <Space>c <Plug>(quickhl-manual-clear)
+nmap <leader>c <Plug>(quickhl-manual-clear)
+vmap <leader>c <Plug>(quickhl-manual-clear)
 
-nmap <Space>M <Plug>(quickhl-manual-reset)
-xmap <Space>M <Plug>(quickhl-manual-reset)
+nmap <leader>M <Plug>(quickhl-manual-reset)
+xmap <leader>M <Plug>(quickhl-manual-reset)
 
-nmap <Space>j <Plug>(quickhl-cword-toggle)
-nmap <Space>] <Plug>(quickhl-tag-toggle)
-map H <Plug>(operator-quickhl-manual-this-motion)
+nmap <leader>j <Plug>(quickhl-cword-toggle)
+" nmap <leader>] <Plug>(quickhl-tag-toggle)
+" map H <Plug>(operator-quickhl-manual-this-motion)
 
 let g:quickhl_manual_colors = [
 			\ "cterm=bold ctermfg=154 gui=bold guifg=#afff00",
@@ -803,40 +821,84 @@ let g:quickhl_manual_colors = [
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
 Plug 'tpope/vim-endwise'
 " Plug 'alvan/vim-closetag'
-Plug 'kana/vim-smartinput'
+" Plug 'kana/vim-smartinput'
 " -------------------------------------------------------
 Plug 'rust-lang/rust.vim', {'for': ['rust']}
 " -------------------------------------------------------
-Plug 'kmszk/CCSpellCheck.vim'
+Plug 'fatih/vim-go', { 'for': ['go'], 'do': ':GoInstallBinaries' }
+" ctagsのままでよいので
+let g:go_def_mapping_enabled = 0
+nnoremap <leader>g f :GoDecls<CR>
+nnoremap <leader>g d :GoDeclsDir<CR>
+
 " -------------------------------------------------------
-Plug 'kmszk/skyhawk'
-Plug 'kmszk/skyknight'
+Plug 'posva/vim-vue'
+" -------------------------------------------------------
+Plug 'kamykn/spelunker.vim'
+let g:spelunker_white_list_for_user = ['kamykn', 'vimrc']
+" let g:spelunker_min_char_len = 1
+" -------------------------------------------------------
+Plug 'kamykn/skyhawk'
+Plug 'kamykn/skyknight'
 Plug 'joshdick/onedark.vim'
 Plug 'freeo/vim-kalisi'
 Plug 'colepeters/spacemacs-theme.vim'
+Plug 'connorholyday/vim-snazzy'
+Plug 'srcery-colors/srcery-vim'
+let g:srcery_italic = 1
+Plug 'kaicataldo/material.vim'
+
+
+" Plug 'dikiaap/minimalist'
 " -------------------------------------------------------
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
+" -------------------------------------------------------
+Plug 'luochen1990/rainbow'
+let g:rainbow_active = 1 " 0 if you want to enable it later via :RainbowToggle
+	let g:rainbow_conf = {
+	\	'guifgs': ['#87d7ff', 'white'],
+	\	'ctermfgs': ['117', '15',],
+	\}
+
 " -------------------------------------------------------
 Plug 'vim-scripts/TeTrIs.vim'
 " -------------------------------------------------------
 call plug#end()
 " }}}
-" 行末スペース
-" TODO
-call smartinput#define_rule({
-			\   'at': '\s\+\%#',
-			\   'char': '<CR>',
-			\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
-			\   })
-" アロー演算子
-" TODO
-call smartinput#define_rule({
-			\   'at': '\s\+\%#',
-			\   'char': '-',
-			\   'input': ">",
-			\   'filetype' : ['php'],
-			\   })
+" " 行末スペース
+" " TODO
+" call smartinput#define_rule({
+" 			\   'at': '\s\+\%#',
+" 			\   'char': '<CR>',
+" 			\   'input': "<C-o>:call setline('.', substitute(getline('.'), '\\s\\+$', '', ''))<CR><CR>",
+" 			\   })
+" " アロー演算子
+" " TODO
+" call smartinput#define_rule({
+" 			\   'at': '\s\+\%#',
+" 			\   'char': '-',
+" 			\   'input': ">",
+" 			\   'filetype' : ['php'],
+" 			\   })
+" -------------------------------------------------------
+" Language settings
+" -------------------------------------------------------
+
+" {{{
+let g:sql_type_default = 'mysql'
+" 文字列の中のSQLをハイライト
+let php_sql_query = 1
+" HTMLもハイライト
+let php_htmlInStrings = 1
+" ] や ) の対応エラーをハイライト
+let php_parent_error_close = 1
+let php_parent_error_open = 1
+
+" Phan
+" Macのローカルに環境構築する場合はこちら
+" https://github.com/phan/phan/wiki/Getting-Started-With-Homebrew
+" }}}
 
 " -------------------------------------------------------
 " colorscheme
@@ -855,13 +917,19 @@ function! s:bgdark()
 	set background=dark
     " colorscheme skyhawk
 	" colorscheme skyknight
-    colorscheme onedark
+    " colorscheme onedark
+    " colorscheme snazzy
+	" colorscheme srcery
+	colorscheme material
+	let g:material_theme_style = 'palenight'
+	let g:material_terminal_italics = 1
 
 	" hyper用に背景色を無効にしてみる
-	hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
+	" hi Normal ctermfg=250 ctermbg=NONE cterm=NONE guifg=#bcbcbc guibg=NONE gui=NONE
 endfunction
 
 call s:bgdark()
+" call s:bglight()
 
 hi clear SpellBad
 hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
@@ -888,6 +956,18 @@ command! HighlightInfo call s:get_highlight_info()
 " }}}
 
 " -------------------------------------------------------
+" for debug
+" -------------------------------------------------------
+" usage)
+" TimerStart
+" なんか処理
+" TimerEnd
+"
+command! -bar TimerStart    let start_time = reltime()
+command! -bar TimerEndEcho  echo reltimestr(reltime(start_time))
+command! -bar TimerEndEchom echom reltimestr(reltime(start_time))
+
+" -------------------------------------------------------
 " memo
 " -------------------------------------------------------
 
@@ -896,7 +976,8 @@ command! HighlightInfo call s:get_highlight_info()
 " <C-m>はReturnだが、normalモードだとjと変わらないと思って
 " <C-m>にキーバインドするとナチュラルに死ぬパターンある
 "
-" 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。これはvimの入力中の移動は履歴が区切られてしまう仕様による。
+" 自動で括弧やendxxx系を閉じるプラグインが悪さしてクリップボードからペーストしたものの履歴が区切られてしまう。
+" これはvimの入力中の移動は履歴が区切られてしまう仕様による。
 " 履歴の単位を正しくすることと、確実にコピペするためにも:a!を利用すること。
 "
 " session もfzfで複数から絞りたい

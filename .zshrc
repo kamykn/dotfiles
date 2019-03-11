@@ -53,9 +53,6 @@ autoload -U colors     ; colors
 # プロンプトテーマを表示するコマンド
 # prompt -l
 
-# 名前@マシン名 プロンプト
-# 参考 https://github.com/sindresorhus/pure/blob/master/readme.md
-# 背景 HSB: 色相232°彩度30% 明度19%
 local prompt_location="%F{081}%B%~%b%f"
 local promot_mark="%B%F{208}%(!,#,$) %f%b"
 local status_code="%(?,,%F{208} / %f%B%F{red}%?%f%b)"
@@ -130,6 +127,7 @@ alias cpbrname='git symbolic-ref --short HEAD  | tr -d "\n" '' | pbcopy'
 
 alias gitroot='git rev-parse --show-toplevel'
 alias cdgitroot='cd `git rev-parse --show-toplevel`'
+alias tigs='tig status'
 # }}}
 
 ##========================================================##
@@ -299,6 +297,34 @@ fadd() {
 		done
 }
 
+fssh() {
+	local sshLoginHost profile
+	sshLoginHost=`cat ~/.ssh/config | grep -i ^host | grep -v '*' | grep -v 'git' | awk '{print $2}' | fzf`
+
+	if [ "$sshLoginHost" = "" ]; then
+		# ex) Ctrl-C.
+		return 1
+	fi
+
+	profile='green'
+	if [[ "$sshLoginHost" =~ 'prod' ]]; then
+		profile='red'
+	fi
+
+	# Terminal.appのprofile変更
+	osascript -e "tell application \"Terminal\" to set current settings of first window to settings set \"$profile\""
+
+	ssh ${sshLoginHost}
+}
+
+reopen() {
+	clear
+	source ~/.zshrc
+
+	# Terminal.appのprofile変更
+	osascript -e "tell application \"Terminal\" to set current settings of first window to settings set \"navy\""
+}
+
 # worktree移動
 cdworktree() {
 	# カレントディレクトリがGitリポジトリ上かどうか
@@ -381,10 +407,15 @@ zplug "rupa/z", use:z.sh
 zplug "motemen/ghq", as:command, from:gh-r, rename-to:ghq
 # ---------------------------------------------------
 # ---------------------------------------------------
-zplug "junegunn/fzf-bin", as:command, from:gh-r, rename-to:fzf
+# zplug "plugins/tig", as:command, from:oh-my-zsh, rename-to:tig
 # ---------------------------------------------------
+# ---------------------------------------------------
+zplug "junegunn/fzf-bin", as:command, from:gh-r, rename-to:fzf
 zplug "junegunn/fzf", as:command, use:bin/fzf-tmux
 # ---------------------------------------------------
+# fzf-bin にホスティングされているので注意
+# またファイル名が fzf-bin となっているので file:fzf としてリネームする
+# ついでに tmux 用の拡張も入れる
 
 # Install plugins if there are plugins that have not been installed
 if ! zplug check --verbose; then
@@ -404,6 +435,12 @@ zplug load
 ##====================================================##
 
 # {{{
+##====================================================##
+##================== 画像プレビュー ==================##
+##====================================================##
+#
+alias phpopec='php -dopcache.enable_cli=1 -dopcache.opt_debug_level=0x10000'
+
 ##====================================================##
 ##================== 画像プレビュー ==================##
 ##====================================================##
