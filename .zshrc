@@ -17,6 +17,7 @@ zcompile ~/.zshrc
 
 export LANG=ja_JP.UTF-8
 
+alias v='vim .'
 alias vi='vim'
 alias vimupdate='brew upgrade vim --with-lua --with-python3'
 #}}}
