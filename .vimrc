@@ -131,14 +131,15 @@ set colorcolumn=120
 " リーダー
 let mapleader = "\<Space>"
 " カレントじゃないウインドウ以外を閉じる
-nnoremap <leader>o :only<CR>
+nnoremap <leader>to :only<CR>
 " カレントのタブを閉じる(分割が残らない)
 nnoremap <leader>tq :tabclose<CR>
-" :qの簡易化
-nnoremap <leader>q :quit<CR>
 " 余計なもの全部消す
 nnoremap <leader>tn :Tabnewonly<CR>
 :command! Tabnewonly tabe | tabonly
+
+" :qの簡易化
+nnoremap <leader>q :quit<CR>
 
 "行番号
 set number
@@ -232,8 +233,8 @@ nmap N Nzz
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 " inoremap <expr> <CR> pumvisible() ? "<C-y>" : "\<CR>"
-" フルパス表示(C-Gが少し遅くなるけど…)
-nnoremap <C-G><C-G> :echo expand("%:p")<cr>
+" フルパス表示(C-gの置き換え…)
+nnoremap <C-g> :echo expand("%:p")<cr>
 
 " OniVimのC-v C-c有効化
 " FYI: https://github.com/onivim/oni/blob/8d08aa109299517c0c6799c66e962563b0fd5fa4/browser/src/Input/KeyBindings.ts#L38
@@ -323,15 +324,19 @@ autocmd BufRead,BufNewFile *.es6 setlocal filetype=javascript
 " :FZFコマンドを使えるように
 set rtp+=~/.fzf
 
-nnoremap <C-b> :Fb<CR>
-nnoremap <C-f> :FZFFileList<CR>
-nnoremap <C-h> :FZFMru<CR>
+nnoremap <leader>b :Fb<CR>
+nnoremap <leader>f :FZFFileList<CR>
+nnoremap <leader>d :FZFDirList<CR>
+nnoremap <leader>m :FZFMru<CR>
+nnoremap <leader>t :FZFTabOpen<CR>
+nnoremap <leader>o :FZFOpenFile<CR>
 " nnoremap <C-]> :FZFFileList<CR>
 
 command! Fq   FZFQuickFix
 command! Fmru FZFMru
 command! Fb   FZFBuffer
 command! Ft   FZFTagList
+
 
 " [Replace of Ctrl-p] --------------------------------
 " 除外したいファイルが有れば
@@ -340,6 +345,11 @@ command! Ft   FZFTagList
 
 command! FZFFileList call fzf#run({
 			\ 'source': 'find . -type d -name .git -prune -o ! -name .DS_Store',
+			\ 'sink':   'e',
+			\ 'down':   '40%'})
+
+command! FZFDirList call fzf#run({
+			\ 'source': 'find . -type d',
 			\ 'sink':   'e',
 			\ 'down':   '40%'})
 
@@ -418,9 +428,7 @@ endfunction
 " [file open] ----------------------------------
 "
 " ファイルに書かれたパスからマッチするファイル開く
-nnoremap <leader>f :FZFOpenFile<CR>
 command! FZFOpenFile call FZFOpenFileFunc()
-
 function! FZFOpenFileFunc()
 	let s:file_path = expand("<cfile>")
 
@@ -439,7 +447,6 @@ endfunction
 " [tab open] ----------------------------------
 "
 " 数あるタブから開く
-nnoremap <leader>to :FZFTabOpen<CR>
 command! FZFTabOpen call s:FZFTabOpenFunc()
 
 function! s:FZFTabOpenFunc()
@@ -790,19 +797,19 @@ let g:lightline#ale#indicator_ok       = ""
 Plug 't9md/vim-quickhl'
 " -------------------------------------------------------
 "
-nmap <leader>m <Plug>(quickhl-manual-this)
-xmap <leader>m <Plug>(quickhl-manual-this)
+nmap <leader>hm <Plug>(quickhl-manual-this)
+xmap <leader>hm <Plug>(quickhl-manual-this)
 
-nmap <leader>w <Plug>(quickhl-manual-this-whole-word)
-xmap <leader>w <Plug>(quickhl-manual-this-whole-word)
+nmap <leader>hw <Plug>(quickhl-manual-this-whole-word)
+xmap <leader>hw <Plug>(quickhl-manual-this-whole-word)
 
-nmap <leader>c <Plug>(quickhl-manual-clear)
-vmap <leader>c <Plug>(quickhl-manual-clear)
+nmap <leader>hc <Plug>(quickhl-manual-clear)
+vmap <leader>hc <Plug>(quickhl-manual-clear)
 
-nmap <leader>M <Plug>(quickhl-manual-reset)
-xmap <leader>M <Plug>(quickhl-manual-reset)
+nmap <leader>hr <Plug>(quickhl-manual-reset)
+xmap <leader>hr <Plug>(quickhl-manual-reset)
 
-nmap <leader>j <Plug>(quickhl-cword-toggle)
+nmap <leader>hj <Plug>(quickhl-cword-toggle)
 " nmap <leader>] <Plug>(quickhl-tag-toggle)
 " map H <Plug>(operator-quickhl-manual-this-motion)
 
@@ -834,8 +841,14 @@ nnoremap <leader>g d :GoDeclsDir<CR>
 " -------------------------------------------------------
 Plug 'posva/vim-vue'
 " -------------------------------------------------------
-Plug 'kamykn/spelunker.vim'
+" Plug 'kamykn/spelunker.vim'
+Plug 'trsdln/spelunker.vim'
 let g:spelunker_white_list_for_user = ['kamykn', 'vimrc']
+let g:spelunker_disable_auto_group = 1
+augroup spelunker
+  autocmd!
+  autocmd BufWinEnter,BufWritePost *.vim,*.js,*.jsx,*.json,*.md,*.go,*.html,*.ts,*.php call spelunker#check()
+augroup END
 " let g:spelunker_min_char_len = 1
 " -------------------------------------------------------
 Plug 'kamykn/skyhawk'
