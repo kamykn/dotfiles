@@ -134,6 +134,8 @@ let mapleader = "\<Space>"
 nnoremap <leader>to :only<CR>
 " カレントのタブを閉じる(分割が残らない)
 nnoremap <leader>tq :tabclose<CR>
+" :tab %:hの簡易化
+nnoremap <leader>c :tabe %:h<CR>
 " 余計なもの全部消す
 nnoremap <leader>tn :Tabnewonly<CR>
 :command! Tabnewonly tabe | tabonly
@@ -826,7 +828,7 @@ let g:quickhl_manual_colors = [
 
 " -------------------------------------------------------
 " shell とかvimscriptとかrubyの if-endif とか閉じてくれる
-Plug 'tpope/vim-endwise'
+" Plug 'tpope/vim-endwise'
 " Plug 'alvan/vim-closetag'
 " Plug 'kana/vim-smartinput'
 " -------------------------------------------------------
