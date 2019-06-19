@@ -185,6 +185,7 @@ endif
 :command! DiffWindo tabnew | vnew | diffthis
 :command! Diff diffthis
 " grep書式自動挿入
+" the_silver_searcher
 nnoremap <expr> ? ':Ag -R ' . expand('<cword>') . ' ~/project/application'
 "vnoremap <expr> ? ':grep ' . expand('<cword>') . ' ~/project/application -R'
 " 連続コピペ
@@ -299,7 +300,7 @@ augroup END
 
 augroup HighlightTrailingSpaces
 	autocmd!
-	autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
+	autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=#949494 ctermbg=246
 	autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
 augroup END
 
@@ -575,6 +576,7 @@ nnoremap <C-@> :call pdv#DocumentWithSnip()<CR>
 
 " -------------------------------------------------------
 Plug 'rking/ag.vim'
+" brew install the_silver_searcher
 " -------------------------------------------------------
 " -------------------------------------------------------
 Plug 'w0rp/ale'
@@ -717,40 +719,40 @@ else
 endif
 
 " -------------------------------------------------------
-Plug 'itchyny/lightline.vim'
-Plug 'maximbaz/lightline-ale'
+" Plug 'itchyny/lightline.vim'
+" Plug 'maximbaz/lightline-ale'
 " -------------------------------------------------------
 " airlineは色々機能付きすぎて重い
-set laststatus=2
-
-" For Powerline
-let g:lightline = {
-	\ 'colorscheme': 'material_vim' ,
-	\ 'active' : {
-	\   'left' : [ [ 'mode', 'paste' ],
-	\              [ 'fugitive', 'readonly', 'filename', 'modified' ] ],
-	\   'right': [ [ 'linter_errors', 'linter_warnings' ,'linter_ok' ],
-	\              [ 'lineinfo' ],
-	\              [ 'percent' ],
-	\              [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
-	\ },
-	\ 'separator'         : { 'left': "", 'right': "" },
-	\ 'subseparator'      : { 'left': "", 'right': "" },
-	\ 'component_function': {
-	\     'fugitive':       'LightlineFugitive',
-	\     'readonly':       'LightlineReadonly',
-	\     'modified':       'LightlineModified',
-	\ },
-	\ 'component_expand': {
-	\     'linter_warnings': 'lightline#ale#warnings',
-	\     'linter_errors'  : 'lightline#ale#errors',
-	\     'linter_ok'      : 'lightline#ale#ok',
-	\ },
-	\ 'component_type':{
-	\     'linter_warnings': 'warning',
-	\     'linter_errors'  : 'error',
-	\ }
-	\ }
+" set laststatus=2
+"
+" " For Powerline
+" let g:lightline = {
+"	\ 'colorscheme': 'material_vim' ,
+"	\ 'active' : {
+"	\   'left' : [ [ 'mode', 'paste' ],
+"	\              [ 'fugitive', 'readonly', 'filename', 'modified' ] ],
+"	\   'right': [ [ 'linter_errors', 'linter_warnings' ,'linter_ok' ],
+"	\              [ 'lineinfo' ],
+"	\              [ 'percent' ],
+"	\              [ 'fileformat', 'fileencoding', 'filetype', 'charvaluehex' ] ]
+"	\ },
+"	\ 'separator'         : { 'left': "", 'right': "" },
+"	\ 'subseparator'      : { 'left': "", 'right': "" },
+"	\ 'component_function': {
+"	\     'fugitive':       'LightlineFugitive',
+"	\     'readonly':       'LightlineReadonly',
+"	\     'modified':       'LightlineModified',
+"	\ },
+"	\ 'component_expand': {
+"	\     'linter_warnings': 'lightline#ale#warnings',
+"	\     'linter_errors'  : 'lightline#ale#errors',
+"	\     'linter_ok'      : 'lightline#ale#ok',
+"	\ },
+"	\ 'component_type':{
+"	\     'linter_warnings': 'warning',
+"	\     'linter_errors'  : 'error',
+"	\ }
+"	\ }
 
 
 function! LightlineModified()
@@ -837,19 +839,18 @@ Plug 'rust-lang/rust.vim', {'for': ['rust']}
 Plug 'fatih/vim-go', { 'for': ['go'], 'do': ':GoInstallBinaries' }
 " ctagsのままでよいので
 let g:go_def_mapping_enabled = 0
-nnoremap <leader>g f :GoDecls<CR>
-nnoremap <leader>g d :GoDeclsDir<CR>
+nnoremap <leader>gf :GoDecls<CR>
+nnoremap <leader>gd :GoDeclsDir<CR>
 
 " -------------------------------------------------------
 Plug 'posva/vim-vue'
 " -------------------------------------------------------
-" Plug 'kamykn/spelunker.vim'
-Plug 'trsdln/spelunker.vim'
+Plug 'kamykn/spelunker.vim'
 let g:spelunker_white_list_for_user = ['kamykn', 'vimrc']
 let g:spelunker_disable_auto_group = 1
 augroup spelunker
   autocmd!
-  autocmd BufWinEnter,BufWritePost *.vim,*.js,*.jsx,*.json,*.md,*.go,*.html,*.ts,*.php call spelunker#check()
+  autocmd BufWinEnter,BufWritePost *.vim,*.js,*.jsx,*.json,*.md,*.go,*.rs,*.html,*.ts,*.php,*.txt call spelunker#check()
 augroup END
 " let g:spelunker_min_char_len = 1
 " -------------------------------------------------------
@@ -862,6 +863,7 @@ Plug 'connorholyday/vim-snazzy'
 Plug 'srcery-colors/srcery-vim'
 let g:srcery_italic = 1
 Plug 'kaicataldo/material.vim'
+Plug 'kamykn/dark-theme.vim'
 
 
 " Plug 'dikiaap/minimalist'
@@ -869,15 +871,17 @@ Plug 'kaicataldo/material.vim'
 Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
 Plug 'junegunn/fzf.vim'
 " -------------------------------------------------------
-Plug 'luochen1990/rainbow'
-let g:rainbow_active = 1 " 0 if you want to enable it later via :RainbowToggle
-	let g:rainbow_conf = {
-	\	'guifgs': ['#87d7ff', 'white'],
-	\	'ctermfgs': ['117', '15',],
-	\}
+" Plug 'luochen1990/rainbow'
+" let g:rainbow_active = 1 " 0 if you want to enable it later via :RainbowToggle
+" 	let g:rainbow_conf = {
+"	\	'guifgs': ['#87d7ff', 'white'],
+"	\	'ctermfgs': ['117', '15',],
+"	\}
 
 " -------------------------------------------------------
-Plug 'vim-scripts/TeTrIs.vim'
+" お試し
+" Plug 'vim-scripts/TeTrIs.vim'
+Plug 'scrooloose/nerdtree'
 " -------------------------------------------------------
 call plug#end()
 " }}}
@@ -932,10 +936,11 @@ function! s:bgdark()
 	set background=dark
     " colorscheme skyhawk
 	" colorscheme skyknight
+	colorscheme darktheme
     " colorscheme onedark
     " colorscheme snazzy
 	" colorscheme srcery
-	colorscheme material
+	" colorscheme material
 	let g:material_theme_style = 'palenight'
 	let g:material_terminal_italics = 1
 
@@ -946,13 +951,13 @@ endfunction
 call s:bgdark()
 " call s:bglight()
 
-hi clear SpellBad
-hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
-hi clear SpellCap " & ALE
-hi SpellCap cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+" hi clear SpellBad
+" hi SpellBad cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
+" hi clear SpellCap " & ALE
+" hi SpellCap cterm=underline ctermfg=NONE ctermbg=NONE gui=underline guifg=NONE guibg=NONE
 
-hi Search ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
-hi IncSearch ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
+" hi Search ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
+" hi IncSearch ctermfg=45 ctermbg=NONE cterm=NONE guifg=#00d7ff guibg=NONE gui=NONE
 
 
 " カーソル下のhighlight情報を表示する
