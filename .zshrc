@@ -19,7 +19,7 @@ export LANG=ja_JP.UTF-8
 
 alias v='vim .'
 alias vi='vim'
-alias vimupdate='brew upgrade vim --with-lua --with-python3'
+alias vimupdate='brew upgrade vim'
 #}}}
 
 ##========================================================##
@@ -206,6 +206,8 @@ setopt always_last_prompt     # カーソル位置は保持したままファイ
 setopt rm_star_wait           # rm * を実行する前に確認
 
 export PATH=~/local/bin:$PATH # ローカルのパスを優先する
+
+export PROMPT_EOL_MARK=''     # zshが改行した場合に表示される%を非表示
 # }}}
 
 ##====================================================##
@@ -388,7 +390,7 @@ zplug "zsh-users/zsh-completions"
 # ---------------------------------------------------
 
 # ---------------------------------------------------
-zplug "zsh-users/zsh-syntax-highlighting", defer:2
+# zplug "zsh-users/zsh-syntax-highlighting", defer:2
 # ---------------------------------------------------
 # Set the priority when loading
 # e.g., zsh-syntax-highlighting must be loaded
@@ -506,4 +508,40 @@ command_not_found_handler(){
 
 # }}}
 
+##====================================================##
+##============== Java Spring Boot CLI ================##
+##====================================================##
+
+PATH="${PATH}:$HOME/spring-2.0.0.RELEASE/bin"
+
+##====================================================##
+##===================== Gradle =======================##
+##====================================================##
+PATH="${PATH}:$HOME/gradle-4.4.1/bin"
+
+##====================================================##
+##====================== pip2 ========================##
+##====================================================##
+PATH="${PATH}:$HOME/Library/Python/2.7/bin"
+
+
 export PATH
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/kamykn/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/kamykn/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/kamykn/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/kamykn/google-cloud-sdk/completion.zsh.inc'; fi
+
+source /Users/kamykn/.ghq/github.com/kamykn/smart-f.zsh/smart-f.plugin.zsh
+
+bindkey '^F' smart_f_next
+bindkey '^B' smart_f_prev
+
+getchar() {
+	read -k1 char
+	echo -e "\n$char"
+}
+
+zle -N getchar
+bindkey '^E' getchar

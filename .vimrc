@@ -14,7 +14,7 @@
 " brew upgrade vim --with-lua --with-python3
 "
 " Font Install
-" https://github.com/miiton/Cica
+" https://github.com/mutton/Cica
 "
 " # memo
 " ## fold
@@ -719,6 +719,9 @@ else
 endif
 
 " -------------------------------------------------------
+" Plug 'psliwka/vim-smoothie'
+" -------------------------------------------------------
+" -------------------------------------------------------
 " Plug 'itchyny/lightline.vim'
 " Plug 'maximbaz/lightline-ale'
 " -------------------------------------------------------
@@ -845,14 +848,45 @@ nnoremap <leader>gd :GoDeclsDir<CR>
 " -------------------------------------------------------
 Plug 'posva/vim-vue'
 " -------------------------------------------------------
-Plug 'kamykn/spelunker.vim'
+" Plug 'kamykn/spelunker.vim'
+Plug 'tsuyoshicho/spelunker.vim'
+let g:enable_spelunker_vim_on_readonly = 0
 let g:spelunker_white_list_for_user = ['kamykn', 'vimrc']
-let g:spelunker_disable_auto_group = 1
-augroup spelunker
-  autocmd!
-  autocmd BufWinEnter,BufWritePost *.vim,*.js,*.jsx,*.json,*.md,*.go,*.rs,*.html,*.ts,*.php,*.txt call spelunker#check()
-augroup END
+let g:spelunker_check_type = 2
+set spelllang=en,cjk
+let g:spelunker_highlight_type = 1
+
+
+Plug 'ctrlpvim/ctrlp.vim'
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
+let g:ctrlp_working_path_mode = 'ra'
+
+" ctrlp ext
+let g:ctrlp_extensions = get(g:, 'ctrlp_extensions', [])
+      \ + ['spelunker']
+
+
+nnoremap ]s :call spelunker#jump_next()<CR>
+nnoremap [s :call spelunker#jump_prev()<CR>
+
+" for mode test l:spelunker_highlight_type = 1
+" set spelllang=en_us
+" let g:spelunker_highlight_type = 1
+
+" for mode test l:spelunker_highlight_type = 2
+" set spelllang=en_us
+" let g:spelunker_highlight_type = 2
+" let g:enable_spelunker_vim = 0
+
+
+" let g:spelunker_disable_auto_group = 0
+" augroup spelunker
+"   autocmd!
+"   autocmd BufWinEnter,BufWritePost *.vim,*.js,*.jsx,*.json,*.md,*.go,*.rs,*.html,*.ts,*.php,*.txt call spelunker#check()
+" augroup END
 " let g:spelunker_min_char_len = 1
+
 " -------------------------------------------------------
 Plug 'kamykn/skyhawk'
 Plug 'kamykn/skyknight'
@@ -881,7 +915,8 @@ Plug 'junegunn/fzf.vim'
 " -------------------------------------------------------
 " お試し
 " Plug 'vim-scripts/TeTrIs.vim'
-Plug 'scrooloose/nerdtree'
+" Plug 'scrooloose/nerdtree'
+Plug 'kamykn/popup-menu.nvim'
 " -------------------------------------------------------
 call plug#end()
 " }}}
@@ -1023,4 +1058,47 @@ command! -bar TimerEndEchom echom reltimestr(reltime(start_time))
 " :terminalから親のnvimでファイル編集を開く
 " pip3 install neovim-remote
 " }}}
-"
+
+
+" Reverse the layout to make the FZF list top-down
+let $FZF_DEFAULT_OPTS='--layout=reverse'
+
+" Using the custom window creation function
+let g:fzf_layout = { 'window': 'call FloatingFZF()' }
+
+" Function to create the custom floating window
+function! FloatingFZF()
+  " creates a scratch, unlisted, new, empty, unnamed buffer
+  " to be used in the floating window
+  let buf = nvim_create_buf(v:false, v:true)
+
+  " 90% of the height
+  let height = float2nr(&lines * 0.9)
+  " 60% of the height
+  let width = float2nr(&columns * 0.6)
+  " horizontal position (centralized)
+  let horizontal = float2nr((&columns - width) / 2)
+  " vertical position (one line down of the top)
+  let vertical = 1
+
+  let opts = {
+        \ 'relative': 'editor',
+        \ 'row': vertical,
+        \ 'col': horizontal,
+        \ 'width': width,
+        \ 'height': height
+        \ }
+
+  " open the new window, floating, and enter to it
+  call nvim_open_win(buf, v:true, opts)
+endfunction
+
+inoremap <C-b> <C-R>=ListMonths()<CR>
+
+let g:completed_item = ''
+func! ListMonths()
+	call complete(col('.'), ['January', 'February', 'March'])
+	g:completed_item = v:completed_item
+	return ''
+endfunc
+
