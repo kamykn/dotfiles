@@ -54,10 +54,10 @@ autoload -U colors     ; colors
 # プロンプトテーマを表示するコマンド
 # prompt -l
 
-local prompt_location="%F{081}%B%~%b%f"
-local promot_mark="%B%F{208}%(!,#,$) %f%b"
-local status_code="%(?,,%F{208} / %f%B%F{red}%?%f%b)"
-local number_of_jobs="%(1j.%F{208} / %f%F{226}%B%j%b%f.)"
+local prompt_location="%F{141}%B%~%b%f"
+local promot_mark="%B%F{242}%(!,#,$)%f%b "
+local status_code="%(?,,%F{245} / %f%B%F{204}%?%f%b)"
+local number_of_jobs="%(1j.%F{245} / %f%F{226}%B%j%b%f.)"
 
 
 # 右部分 [時間]
@@ -86,7 +86,7 @@ precmd() {
 zstyle ':vcs_info:git:*' check-for-changes false
 zstyle ':vcs_info:git:*' stagedstr         "%F{yellow}!%f"
 zstyle ':vcs_info:git:*' unstagedstr       "%F{red}+%f"
-zstyle ':vcs_info:*'     formats           "%F{208} / %f%F{113}%b%c%u%f"
+zstyle ':vcs_info:*'     formats           "%F{245} / (%f%F{113} %b%c%u %f%F{245})%f"
 zstyle ':vcs_info:*'     actionformats     ' (%b|%a)'
 
 # プロンプト
